@@ -1,0 +1,81 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    /* KaryaAI Dark Theme with Green Accents */
+    --background: 120 15% 8%;              /* #0F1B0E - Dark green background */
+    --foreground: 120 25% 70%;             /* #AACBB8 - Light green text */
+
+    --card: 120 20% 3%;                    /* #052A04 - Very dark surface */
+    --card-foreground: 120 25% 70%;       /* #AACBB8 - Light green text */
+
+    --popover: 120 20% 3%;
+    --popover-foreground: 120 25% 70%;
+
+    --primary: 172 78% 33%;                /* #119F86 - Primary teal green */
+    --primary-foreground: 120 100% 98%;   /* White text on primary */
+
+    --secondary: 172 85% 15%;              /* #063930 - Dark teal surface */
+    --secondary-foreground: 120 25% 70%;  /* Light green text */
+
+    --muted: 120 25% 12%;                  /* Muted background */
+    --muted-foreground: 120 15% 50%;      /* #7A9B86 - Muted text */
+
+    --accent: 172 78% 38%;                 /* #198572 - Accent color */
+    --accent-foreground: 120 100% 98%;
+
+    --destructive: 0 84% 60%;              /* Red for errors */
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 120 20% 15%;                 /* Dark green borders */
+    --input: 120 20% 8%;                   /* Input backgrounds */
+    --ring: 172 78% 33%;                   /* Focus ring - primary color */
+
+    --success: 142 76% 36%;                /* #10B981 - Success green */
+    --warning: 38 92% 50%;                 /* #F59E0B - Warning yellow */
+    --info: 199 89% 48%;                   /* #0EA5E9 - Info blue */
+
+    --gradient-primary: linear-gradient(135deg, hsl(172 78% 33%) 0%, hsl(172 78% 38%) 100%);
+    --gradient-surface: linear-gradient(135deg, hsl(120 20% 3%) 0%, hsl(120 25% 5%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(172 78% 33%) 0%, hsl(142 76% 36%) 100%);
+
+    --shadow-sm: 0 2px 8px -2px hsl(120 25% 0% / 0.3);
+    --shadow-md: 0 4px 16px -4px hsl(120 25% 0% / 0.4);
+    --shadow-lg: 0 8px 32px -8px hsl(120 25% 0% / 0.5);
+    --shadow-glow: 0 0 24px hsl(172 78% 33% / 0.3);
+
+    --radius: 0.75rem;
+    --radius-lg: 1rem;
+    --radius-xl: 1.25rem;
+
+    --sidebar-background: 120 25% 5%;
+    --sidebar-foreground: 120 25% 70%;
+    --sidebar-primary: 172 78% 33%;
+    --sidebar-primary-foreground: 120 100% 98%;
+    --sidebar-accent: 120 20% 8%;
+    --sidebar-accent-foreground: 120 25% 70%;
+    --sidebar-border: 120 20% 12%;
+    --sidebar-ring: 172 78% 33%;
+
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* No light mode - KaryaAI is dark-first */
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
