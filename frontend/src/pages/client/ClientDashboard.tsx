@@ -1,24 +1,10 @@
 import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { 
-  Package, 
-  Workflow, 
-  Clock, 
-  CheckCircle,
-  Plus,
-  Bot,
-  Eye,
-  MessageSquare,
-  Star,
-  Calendar,
-  TrendingUp,
-  Users
-} from 'lucide-react';
+import { WobbleCard } from '../../components/ui/wobble-card';
+import CountUp from '@/components/ui/CountUp';
 
 const ClientDashboard = () => {
+  const clientName = 'John';
+  
   const projects = [
     { 
       id: 1, 
@@ -76,12 +62,40 @@ const ClientDashboard = () => {
     },
   ];
 
-  const stats = {
-    totalProjects: 3,
-    activeProjects: 2,
-    completedProjects: 1,
-    totalBudget: '$58,000'
-  };
+  const stats = [
+    {
+      title: 'Total Products',
+      value: '3',
+      change: '+1',
+      changeType: 'positive',
+      icon: 'fas fa-box',
+      color: 'text-primary'
+    },
+    {
+      title: 'Active',
+      value: '2',
+      change: '0',
+      changeType: 'neutral',
+      icon: 'fas fa-chart-line',
+      color: 'text-warning'
+    },
+    {
+      title: 'Completed',
+      value: '1',
+      change: '+1',
+      changeType: 'positive',
+      icon: 'fas fa-check-circle',
+      color: 'text-success'
+    },
+    {
+      title: 'Total Budget',
+      value: '58',
+      change: '+25',
+      changeType: 'positive',
+      icon: 'fas fa-dollar-sign',
+      color: 'text-white'
+    }
+  ];
 
   const getStatusBadge = (status: string) => {
     const variants = {
@@ -96,225 +110,153 @@ const ClientDashboard = () => {
   const getUpdateTypeIcon = (type: string) => {
     switch (type) {
       case 'milestone':
-        return <CheckCircle className="w-4 h-4 text-success" />;
+        return 'fas fa-check-circle';
       case 'review_required':
-        return <Eye className="w-4 h-4 text-warning" />;
+        return 'fas fa-eye';
       case 'completed':
-        return <Star className="w-4 h-4 text-primary" />;
+        return 'fas fa-star';
       default:
-        return <Clock className="w-4 h-4 text-muted-foreground" />;
+        return 'fas fa-clock';
     }
   };
 
   return (
-    <div className="space-y-6">
+    <div className="bg-black h-screen text-white p-6 flex flex-col gap-4 overflow-hidden">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between h-[10vh] justify-center">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Project Dashboard</h1>
-          <p className="text-muted-foreground mt-1">Track your projects and collaborate with our team</p>
+          <h1 className="text-4xl font-bold text-white font-navbar">Hello {clientName}! Here's your project overview</h1>
         </div>
         <div className="flex items-center space-x-2 mt-4 sm:mt-0">
-          <Button variant="outline" size="sm">
-            <MessageSquare className="w-4 h-4 mr-2" />
-            Feedback
-          </Button>
-          <Button className="bg-gradient-primary">
-            <Plus className="w-4 h-4 mr-2" />
+          <span className="inline-flex items-center rounded-full px-2 py-1 text-lg font-medium bg-primary/20 text-primary">
+            <i className="fas fa-user w-3 h-3 mr-1"></i>
+            Client
+          </span>
+          <button className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-lg font-medium ring-offset-background transition-colors bg-white/10 hover:bg-white/20 border border-white/20 text-white h-10 py-2 px-4">
+            <i className="fas fa-plus w-4 h-4 mr-2"></i>
             New Product
-          </Button>
+          </button>
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card className="bg-gradient-surface border-border/20">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Projects</p>
-                <p className="text-2xl font-bold text-foreground mt-2">{stats.totalProjects}</p>
-              </div>
-              <Package className="w-8 h-8 text-primary" />
+      {/* Combined Grid Layout */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 h-[90vh] grid-rows-[15vh_1fr_20vh_1fr]">
+        {/* Stats Cards Row */}
+        {stats.map((stat, index) => (
+          <WobbleCard key={stat.title} containerClassName="bg-[#0f181a] border border-white/20" className="h-full px-4 py-4 sm:px-6 relative">
+            <i className={`${stat.icon} text-3xl ${stat.color} absolute top-4 left-4`}></i>
+            <div className="absolute top-4 right-4 flex items-center">
+              <i className="fas fa-chart-line text-lg text-primary mr-2"></i>
+              <span className="text-sm text-primary font-navbar">{stat.change}</span>
             </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-surface border-border/20">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Active</p>
-                <p className="text-2xl font-bold text-foreground mt-2">{stats.activeProjects}</p>
-              </div>
-              <TrendingUp className="w-8 h-8 text-warning" />
+            <p className="text-sm font-medium text-white/70 font-navbar absolute top-12 left-4">{stat.title}</p>
+            <div className="absolute bottom-4 right-4">
+              <CountUp
+                to={parseFloat(stat.value)}
+                className="text-5xl font-bold text-white font-navbar"
+                duration={2}
+                separator=","
+              />
+              {stat.title === 'Total Budget' && <span className="text-2xl font-bold text-white font-navbar">K</span>}
             </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-surface border-border/20">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Completed</p>
-                <p className="text-2xl font-bold text-foreground mt-2">{stats.completedProjects}</p>
-              </div>
-              <CheckCircle className="w-8 h-8 text-success" />
+          </WobbleCard>
+        ))}
+        
+        <WobbleCard containerClassName="bg-white/5 border border-white/20 col-span-3 row-span-3" className="h-full px-4 py-4 sm:px-6 flex flex-col">
+          <div className="flex flex-row items-center justify-between mb-4">
+            <div>
+              <h3 className="text-xl font-semibold text-white font-navbar">My Products</h3>
+              <p className="text-base text-white/70 font-navbar">Track progress and manage your product development</p>
             </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-surface border-border/20">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Budget</p>
-                <p className="text-2xl font-bold text-foreground mt-2">{stats.totalBudget}</p>
-              </div>
-              <Users className="w-8 h-8 text-accent" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Main Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Projects */}
-        <div className="lg:col-span-2">
-          <Card className="bg-gradient-surface border-border/20">
-            <CardHeader>
-              <CardTitle className="text-xl font-semibold">My Products</CardTitle>
-              <CardDescription>Track progress and manage your product development</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {projects.map((project) => (
-                <div key={project.id} className="p-4 rounded-lg bg-card/50 border border-border/10 space-y-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <h4 className="font-semibold text-foreground">{project.name}</h4>
-                        <Badge className={getStatusBadge(project.status)}>
-                          {project.status.replace('_', ' ')}
-                        </Badge>
-                      </div>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-muted-foreground mb-4">
-                        <div>
-                          <span className="block text-foreground font-medium">{project.completedTasks}/{project.totalTasks}</span>
-                          <span>Tasks</span>
-                        </div>
-                        <div>
-                          <span className="block text-foreground font-medium">{project.progress}%</span>
-                          <span>Complete</span>
-                        </div>
-                        <div>
-                          <span className="block text-foreground font-medium">{project.deadline}</span>
-                          <span>Deadline</span>
-                        </div>
-                        <div>
-                          <span className="block text-foreground font-medium">{project.budget}</span>
-                          <span>Budget</span>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">Progress</span>
-                          <span className="text-foreground">{project.progress}%</span>
-                        </div>
-                        <Progress value={project.progress} className="h-2" />
-                      </div>
+            <i className="fas fa-box text-lg text-primary"></i>
+          </div>
+          <div className="space-y-2 flex-1 overflow-y-auto">
+            {projects.map((project) => (
+              <div key={project.id} className="p-2 rounded-lg bg-white/5 border border-white/10 block">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-medium text-white text-base font-navbar truncate">{project.name}</h4>
+                    <span className={`inline-flex items-center rounded-full px-2 py-1 text-sm font-medium font-navbar ${getStatusBadge(project.status)}`}>
+                      {project.status.replace('_', ' ')}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 text-sm text-white/70 font-navbar mb-2">
+                    <div>
+                      <span className="block text-white font-medium">{project.completedTasks}/{project.totalTasks}</span>
+                      <span>Tasks</span>
+                    </div>
+                    <div>
+                      <span className="block text-white font-medium">{project.budget}</span>
+                      <span>Budget</span>
                     </div>
                   </div>
-                  <div className="flex space-x-2 pt-2 border-t border-border/10">
-                    <Button size="sm" variant="outline">
-                      <Eye className="w-3 h-3 mr-2" />
-                      View Details
-                    </Button>
-                    <Button size="sm" variant="ghost">
-                      <MessageSquare className="w-3 h-3 mr-2" />
-                      Feedback
-                    </Button>
-                    {project.status === 'planning' && (
-                      <Button size="sm" className="bg-gradient-primary">
-                        <Bot className="w-3 h-3 mr-2" />
-                        Generate Workflow
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Sidebar */}
-        <div className="space-y-6">
-          {/* Recent Updates */}
-          <Card className="bg-gradient-surface border-border/20">
-            <CardHeader>
-              <CardTitle className="text-base font-semibold">Recent Updates</CardTitle>
-              <CardDescription>Latest project activity</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {recentUpdates.map((update) => (
-                <div key={update.id} className="flex items-start space-x-3 p-3 rounded-lg bg-card/30 border border-border/10">
-                  {getUpdateTypeIcon(update.type)}
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-foreground">{update.title}</p>
-                    <div className="flex items-center justify-between mt-1">
-                      <p className="text-xs text-muted-foreground">{update.project}</p>
-                      <p className="text-xs text-muted-foreground">{update.timestamp}</p>
+                  {project.progress > 0 && (
+                    <div className="flex items-center space-x-2">
+                      <div className="w-24 bg-white/20 rounded-full h-2">
+                        <div className="bg-primary h-2 rounded-full transition-all duration-300" style={{ width: `${project.progress}%` }}></div>
+                      </div>
+                      <span className="text-sm text-white/70 font-navbar">{project.progress}%</span>
                     </div>
-                  </div>
+                  )}
                 </div>
-              ))}
-            </CardContent>
-          </Card>
+              </div>
+            ))}
+          </div>
+        </WobbleCard>
 
-          {/* AI Workflow Generator */}
-          <Card className="bg-gradient-primary/5 border-primary/20">
-            <CardHeader>
-              <CardTitle className="text-base font-semibold flex items-center">
-                <Bot className="w-4 h-4 mr-2 text-primary" />
-                AI Workflow Generator
-              </CardTitle>
-              <CardDescription>Describe your product and get an instant workflow</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                Simply describe what you want to build, and our AI will create a complete workflow with tasks and timelines.
-              </p>
-              <Button className="w-full bg-gradient-primary">
-                <Plus className="w-4 h-4 mr-2" />
-                Create Workflow
-              </Button>
-            </CardContent>
-          </Card>
+        <WobbleCard containerClassName="bg-[#0f181a] border border-white/20" className="h-full px-4 py-4 sm:px-6 flex flex-col">
+          <div className="flex flex-row items-center justify-between mb-4">
+            <div>
+              <h3 className="text-xl font-semibold text-white font-navbar">Recent Updates</h3>
+            </div>
+            <i className="fas fa-bell text-lg text-primary"></i>
+          </div>
+          <div className="space-y-2 flex-1 overflow-y-auto">
+            {recentUpdates.slice(0, 3).map((update) => (
+              <div key={update.id} className="flex items-center justify-between p-2 rounded-lg bg-primary/5 border border-primary/20">
+                <div>
+                  <p className="text-sm font-medium text-white font-navbar truncate">{update.title.split(':')[1]?.trim() || update.title}</p>
+                  <p className="text-sm text-white/70 font-navbar">{update.timestamp}</p>
+                </div>
+                <i className={`${getUpdateTypeIcon(update.type)} text-sm text-primary`}></i>
+              </div>
+            ))}
+          </div>
+        </WobbleCard>
 
-          {/* Quick Actions */}
-          <Card className="bg-gradient-surface border-border/20">
-            <CardHeader>
-              <CardTitle className="text-base font-semibold">Quick Actions</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <Button variant="outline" size="sm" className="w-full justify-start">
-                <Package className="w-4 h-4 mr-2" />
-                Add Product
-              </Button>
-              <Button variant="outline" size="sm" className="w-full justify-start">
-                <Workflow className="w-4 h-4 mr-2" />
-                View Workflows
-              </Button>
-              <Button variant="outline" size="sm" className="w-full justify-start">
-                <Calendar className="w-4 h-4 mr-2" />
-                Schedule Meeting
-              </Button>
-              <Button variant="outline" size="sm" className="w-full justify-start">
-                <MessageSquare className="w-4 h-4 mr-2" />
-                Contact Support
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+        <WobbleCard containerClassName="bg-[#0f181a] border border-white/20" className="h-full px-4 py-4 sm:px-6 flex flex-col">
+          <div className="flex flex-row items-center justify-between mb-4">
+            <div>
+              <h3 className="text-xl font-semibold text-white font-navbar">AI Assistant</h3>
+            </div>
+            <i className="fas fa-robot text-lg text-primary"></i>
+          </div>
+          <div className="flex flex-col gap-2 mb-4 flex-1">
+            <p className="text-sm text-white/70 font-navbar">Generate workflows with AI</p>
+          </div>
+          <button className="w-full bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30 rounded-lg px-3 py-2 text-sm font-medium font-navbar transition-colors">
+            + Create Workflow
+          </button>
+        </WobbleCard>
+
+        <WobbleCard containerClassName="bg-[#0f181a] border border-white/20" className="h-full px-4 py-4 sm:px-6 flex flex-col">
+          <div className="flex flex-row items-center justify-between mb-4">
+            <div>
+              <h3 className="text-xl font-semibold text-white font-navbar">Quick Actions</h3>
+            </div>
+            <i className="fas fa-bolt text-lg text-primary"></i>
+          </div>
+          <div className="space-y-2 flex-1">
+            <button className="w-full bg-white/5 hover:bg-white/10 text-white border border-white/20 rounded-lg px-3 py-2 text-sm font-medium font-navbar transition-colors flex items-center">
+              <i className="fas fa-box mr-2"></i>
+              Add Product
+            </button>
+            <button className="w-full bg-white/5 hover:bg-white/10 text-white border border-white/20 rounded-lg px-3 py-2 text-sm font-medium font-navbar transition-colors flex items-center">
+              <i className="fas fa-calendar mr-2"></i>
+              Schedule Meeting
+            </button>
+          </div>
+        </WobbleCard>
       </div>
     </div>
   );

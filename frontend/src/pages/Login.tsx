@@ -1,10 +1,5 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Eye, EyeOff, Mail, Lock, Bot, ArrowRight } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 const Login = () => {
@@ -19,60 +14,61 @@ const Login = () => {
     
     try {
       await login({ email, password });
-      // Navigate based on user role - will be handled by auth context
-      navigate('/admin'); // This can be updated with role-based routing later
+      navigate('/admin');
     } catch (error) {
       // Error handling is done in AuthContext with toast
     }
   };
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex bg-black">
       {/* Left Panel - Login Form */}
-      <div className="flex-1 flex items-center justify-center p-8">
-        <div className="w-full max-w-md">
+      <div className="w-full lg:w-2/5 flex items-center justify-center p-8 relative" style={{ backgroundColor: '#121d20ff' }}>
+        <img 
+          src="/Halftone.png" 
+          alt="" 
+          className="absolute inset-0 w-full h-full object-cover opacity-10 pointer-events-none"
+        />
+        <div className="w-full max-w-md relative z-10">
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-primary rounded-xl mb-6 shadow-glow">
-              <Bot className="w-8 h-8 text-primary-foreground" />
-            </div>
-            <h1 className="text-3xl font-bold text-foreground mb-2">Welcome Back</h1>
-            <p className="text-muted-foreground">Sign in to your KaryaAI account</p>
+            <h1 className="text-5xl font-bold text-white mb-2">Welcome Back</h1>
+            <p className="text-xl text-white/70">Sign in to your KaryaAI account</p>
           </div>
 
-          <Card className="border-border/20 bg-gradient-surface backdrop-blur-sm shadow-lg">
-            <CardHeader className="space-y-1">
-              <CardTitle className="text-xl font-semibold">Sign In</CardTitle>
-              <CardDescription>Enter your credentials to access your dashboard</CardDescription>
-            </CardHeader>
-            <CardContent>
+          <div className="rounded-lg border border-white/20 bg-white/5 backdrop-blur-sm shadow-lg hover:border-primary hover:shadow-primary/50 hover:shadow-lg transition-all duration-300">
+            <div className="flex flex-col space-y-1.5 p-6">
+              <h3 className="text-2xl font-semibold leading-none tracking-tight text-white">Sign In</h3>
+              <p className="text-lg text-white/70">Enter your credentials to access your dashboard</p>
+            </div>
+            <div className="p-6 pt-0">
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email Address</Label>
+                  <label htmlFor="email" className="text-lg font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-white">Email Address</label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input
+                    <i className="fas fa-envelope absolute left-3 top-3 h-4 w-4 text-muted-foreground"></i>
+                    <input
                       id="email"
                       type="email"
                       placeholder="admin@karyaai.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="pl-10"
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm pl-10"
                       required
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
+                  <label htmlFor="password" className="text-lg font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-white">Password</label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input
+                    <i className="fas fa-lock absolute left-3 top-3 h-4 w-4 text-muted-foreground"></i>
+                    <input
                       id="password"
                       type={showPassword ? 'text' : 'password'}
                       placeholder="••••••••"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="pl-10 pr-10"
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm pl-10 pr-10"
                       required
                     />
                     <button
@@ -80,7 +76,7 @@ const Login = () => {
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-3 top-3 text-muted-foreground hover:text-foreground transition-colors"
                     >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      <i className={`h-4 w-4 ${showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'}`}></i>
                     </button>
                   </div>
                 </div>
@@ -92,16 +88,16 @@ const Login = () => {
                       id="remember"
                       className="rounded border-border text-primary focus:ring-primary focus:ring-offset-0 bg-input"
                     />
-                    <Label htmlFor="remember" className="text-sm text-muted-foreground">Remember me</Label>
+                    <label htmlFor="remember" className="text-lg text-white/70 font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Remember me</label>
                   </div>
-                  <Link to="/forgot-password" className="text-sm text-primary hover:text-accent transition-colors">
+                  <Link to="/forgot-password" className="text-lg text-primary hover:text-accent transition-colors">
                     Forgot password?
                   </Link>
                 </div>
 
-                <Button 
+                <button 
                   type="submit" 
-                  className="w-full bg-gradient-primary hover:bg-accent transition-all duration-200 group"
+                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary hover:bg-accent h-10 px-4 py-2 w-full transition-all duration-200 group text-[#0f181a]"
                   disabled={isLoading}
                 >
                   {isLoading ? (
@@ -112,60 +108,49 @@ const Login = () => {
                   ) : (
                     <div className="flex items-center space-x-2">
                       <span>Sign In</span>
-                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                      <i className="fas fa-arrow-right w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
                     </div>
                   )}
-                </Button>
+                </button>
               </form>
 
               <div className="mt-6 text-center">
-                <p className="text-sm text-muted-foreground">
+                <p className="text-lg text-white/70">
                   Don't have an account?{' '}
-                  <Link to="/signup" className="text-primary hover:text-accent transition-colors font-medium">
+                  <Link to="/signup" className="text-primary hover:text-primary/80 transition-colors font-medium">
                     Sign up here
                   </Link>
                 </p>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           {/* Demo Credentials */}
-          <Card className="mt-4 border-border/20 bg-card/50">
-            <CardContent className="pt-6">
-              <h3 className="text-sm font-medium text-foreground mb-3">Demo Accounts:</h3>
-              <div className="space-y-2 text-xs text-muted-foreground">
-                <div>👑 Admin: admin@karyaai.com / Admin@123</div>
-                <div>👨‍💼 Employee: employee@karyaai.com / Employee@123</div>
-                <div>👨‍💻 Client: client@karyaai.com / Client@123</div>
+          <div className="mt-4 rounded-lg border border-white/20 bg-white/5">
+            <div className="p-6">
+              <h3 className="text-lg font-medium text-white mb-3">Demo Accounts:</h3>
+              <div className="space-y-2 text-base text-white/70">
+                <div><i className="fas fa-crown mr-2"></i>Admin: admin@karyaai.com / Admin@123</div>
+                <div><i className="fas fa-briefcase mr-2"></i>Employee: employee@karyaai.com / Employee@123</div>
+                <div><i className="fas fa-laptop mr-2"></i>Client: client@karyaai.com / Client@123</div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Right Panel - Hero */}
-      <div className="hidden lg:block flex-1 bg-gradient-hero relative overflow-hidden">
-        <div className="absolute inset-0 bg-black/20" />
-        <div className="relative h-full flex items-center justify-center p-12">
-          <div className="text-center text-white max-w-lg">
-            <h2 className="text-4xl font-bold mb-6">AI-Powered Project Management</h2>
-            <p className="text-xl opacity-90 mb-8">
-              Streamline workflows, automate task assignments, and boost productivity with intelligent project management.
-            </p>
-            <div className="grid grid-cols-3 gap-4 text-sm">
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
-                <div className="text-2xl font-bold">95%</div>
-                <div className="opacity-80">Task Accuracy</div>
-              </div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
-                <div className="text-2xl font-bold">40%</div>
-                <div className="opacity-80">Time Saved</div>
-              </div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
-                <div className="text-2xl font-bold">24/7</div>
-                <div className="opacity-80">AI Assistant</div>
-              </div>
-            </div>
+      {/* Right Panel - Image */}
+      <div className="hidden lg:block lg:w-3/5" style={{ backgroundColor: '#0f181a' }}>
+        <div className="w-full h-full flex flex-col items-center justify-center p-8">
+          <img 
+            src="/LoginImg.png" 
+            alt="Login" 
+            className="w-1/2 h-1/2 object-cover rounded-lg mb-6"
+          />
+          <div className="text-center text-white max-w-md">
+            <h2 className="text-6xl font-bold mb-4">Login</h2>
+            <p className="text-white/80 mb-2">AI-powered project management platform</p>
+            <p className="text-white/60">Streamline workflows with intelligent automation</p>
           </div>
         </div>
       </div>
