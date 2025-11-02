@@ -1,11 +1,5 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Eye, EyeOff, Mail, Lock, User, Bot, ArrowRight, Crown, Briefcase, Monitor } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 const Signup = () => {
@@ -29,11 +23,11 @@ const Signup = () => {
     e.preventDefault();
     
     if (formData.password !== formData.confirmPassword) {
-      return; // Error will be shown by form validation
+      return;
     }
 
     if (!formData.role) {
-      return; // Role is required
+      return;
     }
     
     try {
@@ -43,157 +37,108 @@ const Signup = () => {
         password: formData.password,
         role: formData.role as 'admin' | 'employee' | 'client'
       });
-      navigate('/admin'); // This will be updated with role-based routing
+      navigate('/admin');
     } catch (error) {
       // Error handling is done in AuthContext with toast
     }
   };
 
-  const roleIcons = {
-    admin: Crown,
-    employee: Briefcase,
-    client: Monitor
-  };
-
-  const getRoleIcon = (role: string) => {
-    const Icon = roleIcons[role as keyof typeof roleIcons];
-    return Icon ? <Icon className="w-4 h-4" /> : null;
-  };
-
   return (
-    <div className="min-h-screen flex">
-      {/* Left Panel - Hero */}
-      <div className="hidden lg:block flex-1 bg-gradient-hero relative overflow-hidden">
-        <div className="absolute inset-0 bg-black/20" />
-        <div className="relative h-full flex items-center justify-center p-12">
-          <div className="text-center text-white max-w-lg">
-            <h2 className="text-4xl font-bold mb-6">Join the Future of Work</h2>
-            <p className="text-xl opacity-90 mb-8">
-              Experience intelligent project management that adapts to your team's needs and scales with your business.
-            </p>
-            <div className="space-y-4">
-              <div className="flex items-center space-x-3 bg-white/10 backdrop-blur-sm rounded-lg p-4">
-                <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                  <Bot className="w-4 h-4" />
-                </div>
-                <div className="text-left">
-                  <div className="font-medium">AI-Powered Assignments</div>
-                  <div className="text-sm opacity-80">Smart task distribution based on skills and workload</div>
-                </div>
-              </div>
-              <div className="flex items-center space-x-3 bg-white/10 backdrop-blur-sm rounded-lg p-4">
-                <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                  <Crown className="w-4 h-4" />
-                </div>
-                <div className="text-left">
-                  <div className="font-medium">Multi-Role Dashboards</div>
-                  <div className="text-sm opacity-80">Customized views for admins, employees, and clients</div>
-                </div>
-              </div>
-              <div className="flex items-center space-x-3 bg-white/10 backdrop-blur-sm rounded-lg p-4">
-                <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                  <Briefcase className="w-4 h-4" />
-                </div>
-                <div className="text-left">
-                  <div className="font-medium">Workflow Automation</div>
-                  <div className="text-sm opacity-80">Generate complete workflows from simple descriptions</div>
-                </div>
-              </div>
-            </div>
+    <div className="min-h-screen flex bg-black">
+      {/* Left Panel - Image */}
+      <div className="hidden lg:block lg:w-3/5 bg-black relative overflow-hidden">
+        <div className="w-full h-full flex flex-col items-center justify-center p-8">
+          <img 
+            src="/SignUpImg.png" 
+            alt="Sign Up" 
+            className="w-1/2 h-1/2 object-cover rounded-lg mb-6"
+          />
+          <div className="text-center text-white max-w-md">
+            <h2 className="text-6xl font-bold mb-4">Sign Up</h2>
+            <p className="text-white/80 mb-2">Enterprise-ready with role-based access control</p>
+            <p className="text-white/60">Automated task assignment and smart workflows</p>
           </div>
         </div>
       </div>
 
       {/* Right Panel - Signup Form */}
-      <div className="flex-1 flex items-center justify-center p-8">
-        <div className="w-full max-w-md">
+      <div className="w-full lg:w-2/5 flex items-center justify-center p-8 relative" style={{ backgroundColor: '#121d20ff' }}>
+        <img 
+          src="/Halftone.png" 
+          alt="" 
+          className="absolute inset-0 w-full h-full object-cover opacity-10 pointer-events-none"
+        />
+        <div className="w-full max-w-md relative z-10">
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-primary rounded-xl mb-6 shadow-glow">
-              <Bot className="w-8 h-8 text-primary-foreground" />
-            </div>
-            <h1 className="text-3xl font-bold text-foreground mb-2">Create Account</h1>
-            <p className="text-muted-foreground">Join KaryaAI and transform your workflow</p>
+            <h1 className="text-5xl font-bold text-white mb-2">Create Account</h1>
+            <p className="text-xl text-white/70">Join KaryaAI and transform your workflow</p>
           </div>
 
-          <Card className="border-border/20 bg-gradient-surface backdrop-blur-sm shadow-lg">
-            <CardHeader className="space-y-1">
-              <CardTitle className="text-xl font-semibold">Sign Up</CardTitle>
-              <CardDescription>Create your account to get started with KaryaAI</CardDescription>
-            </CardHeader>
-            <CardContent>
+          <div className="rounded-lg border border-white/20 bg-white/5 backdrop-blur-sm shadow-lg hover:border-primary hover:shadow-primary/50 hover:shadow-lg transition-all duration-300">
+            <div className="flex flex-col space-y-1.5 p-6">
+              <h3 className="text-2xl font-semibold leading-none tracking-tight text-white">Sign Up</h3>
+              <p className="text-lg text-white/70">Create your account to get started with KaryaAI</p>
+            </div>
+            <div className="p-6 pt-0">
               <form onSubmit={handleSignup} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="fullName">Full Name</Label>
+                  <label htmlFor="fullName" className="text-lg font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-white">Full Name</label>
                   <div className="relative">
-                    <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input
+                    <i className="fas fa-user absolute left-3 top-3 h-4 w-4 text-muted-foreground"></i>
+                    <input
                       id="fullName"
                       type="text"
                       placeholder="John Doe"
                       value={formData.fullName}
                       onChange={(e) => handleInputChange('fullName', e.target.value)}
-                      className="pl-10"
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm pl-10"
                       required
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email Address</Label>
+                  <label htmlFor="email" className="text-lg font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-white">Email Address</label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input
+                    <i className="fas fa-envelope absolute left-3 top-3 h-4 w-4 text-muted-foreground"></i>
+                    <input
                       id="email"
                       type="email"
                       placeholder="john@company.com"
                       value={formData.email}
                       onChange={(e) => handleInputChange('email', e.target.value)}
-                      className="pl-10"
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm pl-10"
                       required
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="role">Role</Label>
-                  <Select value={formData.role} onValueChange={(value) => handleInputChange('role', value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select your role" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="admin">
-                        <div className="flex items-center space-x-2">
-                          <Crown className="w-4 h-4" />
-                          <span>Admin - Full system access</span>
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="employee">
-                        <div className="flex items-center space-x-2">
-                          <Briefcase className="w-4 h-4" />
-                          <span>Employee - Task management</span>
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="client">
-                        <div className="flex items-center space-x-2">
-                          <Monitor className="w-4 h-4" />
-                          <span>Client - Project oversight</span>
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <label htmlFor="role" className="text-lg font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-white">Role</label>
+                  <select 
+                    value={formData.role} 
+                    onChange={(e) => handleInputChange('role', e.target.value)}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                    required
+                  >
+                    <option value="">Select your role</option>
+                    <option value="admin">👑 Admin - Full system access</option>
+                    <option value="employee">💼 Employee - Task management</option>
+                    <option value="client">💻 Client - Project oversight</option>
+                  </select>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
+                  <label htmlFor="password" className="text-lg font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-white">Password</label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input
+                    <i className="fas fa-lock absolute left-3 top-3 h-4 w-4 text-muted-foreground"></i>
+                    <input
                       id="password"
                       type={showPassword ? 'text' : 'password'}
                       placeholder="••••••••"
                       value={formData.password}
                       onChange={(e) => handleInputChange('password', e.target.value)}
-                      className="pl-10 pr-10"
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm pl-10 pr-10"
                       required
                     />
                     <button
@@ -201,22 +146,22 @@ const Signup = () => {
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-3 top-3 text-muted-foreground hover:text-foreground transition-colors"
                     >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      <i className={`h-4 w-4 ${showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'}`}></i>
                     </button>
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Confirm Password</Label>
+                  <label htmlFor="confirmPassword" className="text-lg font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-white">Confirm Password</label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input
+                    <i className="fas fa-lock absolute left-3 top-3 h-4 w-4 text-muted-foreground"></i>
+                    <input
                       id="confirmPassword"
                       type={showConfirmPassword ? 'text' : 'password'}
                       placeholder="••••••••"
                       value={formData.confirmPassword}
                       onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                      className="pl-10 pr-10"
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm pl-10 pr-10"
                       required
                     />
                     <button
@@ -224,7 +169,7 @@ const Signup = () => {
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                       className="absolute right-3 top-3 text-muted-foreground hover:text-foreground transition-colors"
                     >
-                      {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      <i className={`h-4 w-4 ${showConfirmPassword ? 'fas fa-eye-slash' : 'fas fa-eye'}`}></i>
                     </button>
                   </div>
                 </div>
@@ -236,21 +181,21 @@ const Signup = () => {
                     className="rounded border-border text-primary focus:ring-primary focus:ring-offset-0 bg-input"
                     required
                   />
-                  <Label htmlFor="terms" className="text-sm text-muted-foreground">
+                  <label htmlFor="terms" className="text-lg text-white/70 font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                     I agree to the{' '}
-                    <Link to="/terms" className="text-primary hover:text-accent transition-colors">
+                    <Link to="/terms" className="text-primary hover:text-primary/80 transition-colors">
                       Terms of Service
                     </Link>{' '}
                     and{' '}
-                    <Link to="/privacy" className="text-primary hover:text-accent transition-colors">
+                    <Link to="/privacy" className="text-primary hover:text-primary/80 transition-colors">
                       Privacy Policy
                     </Link>
-                  </Label>
+                  </label>
                 </div>
 
-                <Button 
+                <button 
                   type="submit" 
-                  className="w-full bg-gradient-primary hover:bg-accent transition-all duration-200 group"
+                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary hover:bg-accent h-10 px-4 py-2 w-full transition-all duration-200 group text-[#0f181a]"
                   disabled={isLoading}
                 >
                   {isLoading ? (
@@ -261,22 +206,22 @@ const Signup = () => {
                   ) : (
                     <div className="flex items-center space-x-2">
                       <span>Create Account</span>
-                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                      <i className="fas fa-arrow-right w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
                     </div>
                   )}
-                </Button>
+                </button>
               </form>
 
               <div className="mt-6 text-center">
-                <p className="text-sm text-muted-foreground">
+                <p className="text-lg text-white/70">
                   Already have an account?{' '}
-                  <Link to="/login" className="text-primary hover:text-accent transition-colors font-medium">
+                  <Link to="/login" className="text-primary hover:text-primary/80 transition-colors font-medium">
                     Sign in here
                   </Link>
                 </p>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       </div>
     </div>

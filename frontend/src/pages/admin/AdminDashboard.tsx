@@ -1,39 +1,37 @@
 import React, { useEffect, useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { 
-  Users, 
-  CheckSquare, 
-  Workflow, 
-  TrendingUp, 
-  Clock, 
-  AlertCircle,
-  Bot,
-  Zap,
-  Calendar,
-  BarChart3,
-  UserPlus,
-  Settings,
-  PlusCircle
-} from 'lucide-react';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { taskService } from '@/services/taskService';
-import { useToast } from '@/hooks/use-toast';
+import { WobbleCard } from '@/components/ui/wobble-card';
+import CountUp from '@/components/ui/CountUp';
+import { useAuth } from '@/contexts/AuthContext';
 
 const AdminDashboard = () => {
   const { tasks, users, workflows, products, isLoading, error, refetch } = useDashboardData();
+  const { user, logout } = useAuth();
   const [isAssigning, setIsAssigning] = useState(false);
-  const { toast } = useToast();
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
+  const getUserInitials = () => {
+    return user?.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'U';
+  };
 
   // Calculate statistics from real data
   const stats = [
     {
       title: 'Total Users',
       value: users.length.toString(),
-      change: '+12%', // This would come from API in real implementation
+      change: '+12%',
       changeType: 'positive',
-      icon: Users,
+      icon: 'fas fa-users',
       color: 'text-info'
     },
     {
@@ -41,7 +39,7 @@ const AdminDashboard = () => {
       value: tasks.filter(task => task.status === 'in_progress').length.toString(),
       change: '+8%',
       changeType: 'positive',
-      icon: CheckSquare,
+      icon: 'fas fa-square-check',
       color: 'text-success'
     },
     {
@@ -49,16 +47,16 @@ const AdminDashboard = () => {
       value: workflows.length.toString(),
       change: '+15%',
       changeType: 'positive',
-      icon: Workflow,
-      color: 'text-primary'
+      icon: 'fas fa-diagram-project',
+      color: 'text-white'
     },
     {
       title: 'Efficiency',
-      value: '94%', // This would be calculated from task completion data
+      value: '94%',
       change: '+3%',
       changeType: 'positive',
-      icon: TrendingUp,
-      color: 'text-accent'
+      icon: 'fas fa-gauge',
+      color: 'text-white'
     }
   ];
 
@@ -66,10 +64,7 @@ const AdminDashboard = () => {
     const unassignedTasks = tasks.filter(task => !task.assignedTo);
     
     if (unassignedTasks.length === 0) {
-      toast({
-        title: "No Unassigned Tasks",
-        description: "All tasks are already assigned.",
-      });
+      alert("No unassigned tasks found.");
       return;
     }
 
@@ -77,26 +72,15 @@ const AdminDashboard = () => {
     try {
       const taskIds = unassignedTasks.map(task => task.id);
       await taskService.assignTasks(taskIds);
-      
-      toast({
-        title: "Tasks Assigned Successfully",
-        description: `${taskIds.length} tasks have been automatically assigned.`,
-      });
-      
-      // Refresh data
+      alert(`${taskIds.length} tasks have been automatically assigned.`);
       refetch();
     } catch (error) {
-      toast({
-        title: "Assignment Failed",
-        description: "Failed to assign tasks. Please try again.",
-        variant: "destructive",
-      });
+      alert("Failed to assign tasks. Please try again.");
     } finally {
       setIsAssigning(false);
     }
   };
 
-  // Use real data instead of mock data
   const recentTasks = tasks.slice(0, 4);
   const unassignedTasks = tasks.filter(task => !task.assignedTo).slice(0, 3);
 
@@ -119,152 +103,271 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="bg-black h-screen text-white p-6 flex flex-col gap-4 overflow-hidden">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between h-[10vh] justify-center">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Admin Dashboard</h1>
-          <p className="text-muted-foreground mt-1">Manage your team and projects efficiently</p>
+          <h1 className="text-3xl font-bold text-white">Admin Dashboard</h1>
         </div>
-        <div className="flex items-center space-x-2 mt-4 sm:mt-0">
-          <Button variant="outline" size="sm">
-            <Calendar className="w-4 h-4 mr-2" />
-            View Reports
-          </Button>
-          <Button className="bg-gradient-primary" onClick={handleAutoAssign} disabled={isAssigning}>
-            <Bot className="w-4 h-4 mr-2" />
-            {isAssigning ? 'Assigning...' : 'Auto-Assign Tasks'}
-          </Button>
-        </div>
-      </div>
+        <div className="flex items-center space-x-4 mt-4 sm:mt-0">
+        
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat) => (
-          <Card key={stat.title} className="bg-gradient-surface border-border/20">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
-                  <p className="text-2xl font-bold text-foreground mt-2">{stat.value}</p>
-                  <div className="flex items-center mt-2">
-                    <TrendingUp className="w-3 h-3 text-success mr-1" />
-                    <span className="text-xs text-success">{stat.change}</span>
+          {/* Notifications */}
+          <div className="relative">
+            <button
+              onClick={() => setShowNotifications(!showNotifications)}
+              className="p-2 rounded-lg hover:bg-white/10 transition-colors relative"
+            >
+              <i className="fas fa-bell text-white"></i>
+              <span className="absolute -top-1 -right-1 h-5 w-5 bg-secondary text-white text-xs rounded-full flex items-center justify-center">
+                3
+              </span>
+            </button>
+
+            {/* Notifications dropdown */}
+            {showNotifications && (
+              <div className="absolute right-0 mt-2 w-80 bg-black/90 backdrop-blur-sm rounded-lg shadow-lg border border-white/20 z-50">
+                <div className="p-4 border-b border-white/20">
+                  <h3 className="text-sm font-medium text-white">Notifications</h3>
+                </div>
+                <div className="max-h-64 overflow-y-auto">
+                  <div className="p-4 hover:bg-white/10 border-b border-white/10">
+                    <div className="flex items-start space-x-3">
+                      <i className="fas fa-check-circle text-green-400 mt-1"></i>
+                      <div className="flex-1">
+                        <p className="text-sm text-white">Task completed</p>
+                        <p className="text-xs text-white/70">2 minutes ago</p>
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <div className={`w-12 h-12 rounded-xl bg-background flex items-center justify-center ${stat.color}`}>
-                  <stat.icon className="w-6 h-6" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Unassigned Tasks */}
-        <Card className="bg-gradient-surface border-border/20">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <div>
-              <CardTitle className="text-base font-semibold">Unassigned Tasks</CardTitle>
-              <CardDescription>Tasks waiting for assignment</CardDescription>
-            </div>
-            <AlertCircle className="w-4 h-4 text-warning" />
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {unassignedTasks.map((task) => (
-              <div key={task.id} className="flex items-center justify-between p-4 rounded-lg bg-card/50 border border-border/10">
-                <div className="flex-1">
-                  <h4 className="font-medium text-foreground">{task.title}</h4>
-                  <div className="flex items-center space-x-2 mt-2">
-                    <Badge className={getPriorityBadge(task.priority)}>
-                      {task.priority}
-                    </Badge>
-                    <div className="flex flex-wrap gap-1">
-                      {task.requiredSkills?.map((skill) => (
-                        <Badge key={skill} variant="outline" className="text-xs">
-                          {skill}
-                        </Badge>
-                      ))}
+                  <div className="p-4 hover:bg-white/10 border-b border-white/10">
+                    <div className="flex items-start space-x-3">
+                      <i className="fas fa-user-plus text-blue-400 mt-1"></i>
+                      <div className="flex-1">
+                        <p className="text-sm text-white">New user registered</p>
+                        <p className="text-xs text-white/70">1 hour ago</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="p-4 hover:bg-white/10">
+                    <div className="flex items-start space-x-3">
+                      <i className="fas fa-exclamation-triangle text-yellow-400 mt-1"></i>
+                      <div className="flex-1">
+                        <p className="text-sm text-white">System maintenance scheduled</p>
+                        <p className="text-xs text-white/70">3 hours ago</p>
+                      </div>
                     </div>
                   </div>
                 </div>
-                <Button size="sm" variant="outline">
-                  Assign
-                </Button>
               </div>
-            ))}
-            <Button className="w-full bg-gradient-primary" size="sm" onClick={handleAutoAssign} disabled={isAssigning}>
-              <Zap className="w-4 h-4 mr-2" />
-              {isAssigning ? 'Assigning...' : 'Auto-Assign All'}
-            </Button>
-          </CardContent>
-        </Card>
+            )}
+          </div>
 
-        {/* Recent Tasks */}
-        <Card className="bg-gradient-surface border-border/20">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <div>
-              <CardTitle className="text-base font-semibold">Recent Activity</CardTitle>
-              <CardDescription>Latest task updates and assignments</CardDescription>
+          {/* User menu */}
+          <div className="relative">
+            <button
+              onClick={() => setShowUserMenu(!showUserMenu)}
+              className="flex items-center space-x-2 p-2 rounded-lg hover:bg-white/10 transition-colors"
+            >
+              <div className="w-8 h-8 bg-primary text-black rounded-full flex items-center justify-center text-sm font-medium">
+                {getUserInitials()}
+              </div>
+              <div className="hidden sm:block text-left">
+                <div className="text-sm font-medium text-white">{user?.name || 'User'}</div>
+                <div className="text-xs text-white/70 capitalize">{user?.role || 'user'}</div>
+              </div>
+              <i className="fas fa-chevron-down text-white/70 text-xs"></i>
+            </button>
+
+            {/* User dropdown */}
+            {showUserMenu && (
+              <div className="absolute right-0 mt-2 w-56 bg-black/90 backdrop-blur-sm rounded-lg shadow-lg border border-white/20 z-50">
+                <div className="p-4 border-b border-white/20">
+                  <div className="font-medium text-white">{user?.name}</div>
+                  <div className="text-sm text-white/70">{user?.email}</div>
+                </div>
+                <div className="py-2">
+                  <button className="w-full flex items-center px-4 py-2 text-sm text-white hover:bg-white/10">
+                    <i className="fas fa-user mr-3 text-white/70"></i>
+                    Profile Settings
+                  </button>
+                  <button className="w-full flex items-center px-4 py-2 text-sm text-white hover:bg-white/10">
+                    <i className="fas fa-cog mr-3 text-white/70"></i>
+                    Preferences
+                  </button>
+                  <button className="w-full flex items-center px-4 py-2 text-sm text-white hover:bg-white/10">
+                    <i className="fas fa-question-circle mr-3 text-white/70"></i>
+                    Help & Support
+                  </button>
+                  <hr className="my-2 border-white/20" />
+                  <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center px-4 py-2 text-sm text-red-400 hover:bg-red-500/20"
+                  >
+                    <i className="fas fa-sign-out-alt mr-3"></i>
+                    Sign Out
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <button className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors bg-white/10 hover:bg-white/20 border border-white/20 text-white h-10 py-2 px-4">
+            View Reports
+          </button>
+          <button 
+            className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors bg-primary hover:bg-primary/90 text-black h-10 px-4 py-2"
+            onClick={handleAutoAssign} 
+            disabled={isAssigning}
+          >
+            {isAssigning ? 'Assigning...' : 'Auto-Assign Tasks'}
+          </button>
+        </div>
+      </div>
+
+      {/* Click outside to close dropdowns */}
+      {(showUserMenu || showNotifications) && (
+        <div
+          className="fixed inset-0 z-40"
+          onClick={() => {
+            setShowUserMenu(false);
+            setShowNotifications(false);
+          }}
+        />
+      )}
+
+      {/* First Row: Stat1, Stat2, Recent Activity (2 cols) */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 h-[28vh]">
+        {stats.slice(0, 2).map((stat, index) => (
+          <WobbleCard key={stat.title} containerClassName="bg-[#0f181a] border border-white/20" className="h-full px-6 py-6 sm:px-8 relative">
+            <i className={`${stat.icon} text-4xl ${stat.color} absolute top-6 left-6`}></i>
+            <div className="absolute top-6 right-6 flex items-center">
+              <i className="fas fa-chart-line text-2xl text-primary mr-2"></i>
+              <span className="text-lg text-primary font-navbar">{stat.change}</span>
             </div>
-            <Clock className="w-4 h-4 text-primary" />
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {recentTasks.map((task) => (
-              <div key={task.id} className="flex items-center justify-between p-4 rounded-lg bg-card/50 border border-border/10">
+            <p className="text-lg font-medium text-white/70 font-navbar absolute top-20 left-6">{stat.title}</p>
+            <div className="absolute bottom-6 left-6">
+              <CountUp
+                to={parseInt(stat.value.replace(/[^0-9]/g, ''))}
+                className="text-6xl font-bold text-white font-navbar"
+                duration={2}
+                separator=","
+              />
+            </div>
+          </WobbleCard>
+        ))}
+
+        <WobbleCard containerClassName="bg-white/5 border border-white/20 col-span-2" className="h-full px-4 py-4 sm:px-6">
+          <div className="flex flex-row items-center justify-between mb-4">
+            <div>
+              <h3 className="text-lg font-semibold text-white font-navbar">Recent Activity</h3>
+              <p className="text-sm text-white/70 font-navbar">Latest task updates</p>
+            </div>
+            <i className="fas fa-clock w-4 h-4 text-primary"></i>
+          </div>
+          <div className="space-y-3">
+            {recentTasks.slice(0, 3).map((task) => (
+              <div key={task.id} className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/10">
                 <div className="flex-1">
-                  <h4 className="font-medium text-foreground">{task.title}</h4>
-                  <p className="text-sm text-muted-foreground mt-1">
+                  <h4 className="font-medium text-white text-base font-navbar">{task.title}</h4>
+                  <p className="text-sm text-white/70 mt-1 font-navbar">
                     {task.assignedToName ? `Assigned to ${task.assignedToName}` : 'Unassigned'}
                   </p>
-                  <div className="flex items-center space-x-2 mt-2">
-                    <Badge className={getStatusBadge(task.status)}>
+                  <div className="flex items-center space-x-2 mt-1">
+                    <span className={`inline-flex items-center rounded-full px-2 py-1 text-sm font-medium font-navbar ${getStatusBadge(task.status)}`}>
                       {task.status.replace('_', ' ')}
-                    </Badge>
-                    <Badge className={getPriorityBadge(task.priority)}>
-                      {task.priority}
-                    </Badge>
+                    </span>
                   </div>
                 </div>
               </div>
             ))}
-            <Button variant="outline" className="w-full" size="sm">
-              <BarChart3 className="w-4 h-4 mr-2" />
-              View All Tasks
-            </Button>
-          </CardContent>
-        </Card>
+          </div>
+        </WobbleCard>
       </div>
 
-      {/* Quick Actions */}
-      <Card className="bg-gradient-surface border-border/20">
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold">Quick Actions</CardTitle>
-          <CardDescription>Common administrative tasks</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Button variant="outline" className="h-20 flex-col space-y-2">
-              <Users className="w-6 h-6" />
-              <span className="text-sm">Manage Users</span>
-            </Button>
-            <Button variant="outline" className="h-20 flex-col space-y-2">
-              <Workflow className="w-6 h-6" />
-              <span className="text-sm">Create Workflow</span>
-            </Button>
-            <Button variant="outline" className="h-20 flex-col space-y-2">
-              <BarChart3 className="w-6 h-6" />
-              <span className="text-sm">View Analytics</span>
-            </Button>
-            <Button variant="outline" className="h-20 flex-col space-y-2">
-              <Bot className="w-6 h-6" />
-              <span className="text-sm">AI Assistant</span>
-            </Button>
+      {/* Second Row: Unassigned Tasks (2 cols), Stat3, Stat4 */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 h-[28vh]">
+        <WobbleCard containerClassName="bg-foreground/50 border border-primary/20 col-span-2" className="h-full px-4 py-4 sm:px-6 flex flex-col">
+          <div className="flex flex-row items-center justify-between mb-4">
+            <div>
+              <h3 className="text-lg font-semibold text-white font-navbar">Unassigned Tasks</h3>
+              <p className="text-sm text-white/70 font-navbar">Tasks waiting for assignment</p>
+            </div>
+            <i className="fas fa-exclamation-triangle w-4 h-4 text-yellow-400"></i>
           </div>
-        </CardContent>
-      </Card>
+          <div className="space-y-3 flex-1">
+            {unassignedTasks.slice(0, 3).map((task) => (
+              <div key={task.id} className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/10">
+                <div className="flex-1">
+                  <h4 className="font-medium text-white text-base font-navbar">{task.title}</h4>
+                  <div className="flex items-center space-x-2 mt-1">
+                    <span className={`inline-flex items-center rounded-full px-2 py-1 text-sm font-medium font-navbar ${getPriorityBadge(task.priority)}`}>
+                      {task.priority}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 py-3">
+            <button 
+              className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors bg-primary hover:bg-primary/90 text-black h-8 px-3 w-full font-navbar"
+              onClick={handleAutoAssign} 
+              disabled={isAssigning}
+            >
+              <i className="fas fa-bolt w-3 h-3 mr-2"></i>
+              {isAssigning ? 'Assigning...' : 'Auto-Assign All'}
+            </button>
+          </div>
+        </WobbleCard>
+
+        {stats.slice(2, 4).map((stat) => (
+          <WobbleCard key={stat.title} containerClassName="bg-[#0f181a] border border-white/20" className="h-full px-6 py-6 sm:px-8 relative">
+            <i className={`${stat.icon} text-4xl ${stat.color} absolute top-6 left-6`}></i>
+            <div className="absolute top-6 right-6 flex items-center">
+              <i className="fas fa-chart-line text-2xl text-primary mr-2"></i>
+              <span className="text-lg text-primary font-navbar">{stat.change}</span>
+            </div>
+            <p className="text-lg font-medium text-white/70 font-navbar absolute top-20 left-6">{stat.title}</p>
+            <div className="absolute bottom-6 left-6">
+              <CountUp
+                to={parseInt(stat.value.replace(/[^0-9]/g, ''))}
+                className="text-6xl font-bold text-white font-navbar"
+                duration={2}
+                separator=","
+              />
+            </div>
+          </WobbleCard>
+        ))}
+      </div>
+
+      {/* Third Row: Quick Actions (4 columns) */}
+      <div className="h-[26vh]">
+        <WobbleCard containerClassName="bg-white/5 border border-white/20 h-full" className="h-full px-4 py-6 sm:px-6 flex flex-col">
+        <div className="mb-6 font-navbar">
+          <h3 className="text-lg font-semibold text-white font-navbar">Quick Actions</h3>
+          <p className="text-sm text-white/70 font-navbar">Common administrative tasks</p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 flex-1">
+          <button className="relative px-4 py-6 rounded-md text-sm font-medium transition-colors border border-white/20 bg-white/10 hover:bg-white/20 text-white font-navbar">
+            <i className="fas fa-users text-2xl absolute top-4 left-4"></i>
+            <span className="text-base absolute bottom-4 right-4">Manage Users</span>
+          </button>
+          <button className="relative px-4 py-6 rounded-md text-sm font-medium transition-colors border border-white/20 bg-white/10 hover:bg-white/20 text-white font-navbar">
+            <i className="fas fa-project-diagram text-2xl absolute top-4 left-4"></i>
+            <span className="text-base absolute bottom-4 right-4">Create Workflow</span>
+          </button>
+          <button className="relative px-4 py-6 rounded-md text-sm font-medium transition-colors border border-white/20 bg-white/10 hover:bg-white/20 text-white font-navbar">
+            <i className="fas fa-chart-bar text-2xl absolute top-4 left-4"></i>
+            <span className="text-base absolute bottom-4 right-4">View Analytics</span>
+          </button>
+          <button className="relative px-4 py-6 rounded-md text-sm font-medium transition-colors border border-white/20 bg-white/10 hover:bg-white/20 text-white font-navbar">
+            <i className="fas fa-robot text-2xl absolute top-4 left-4"></i>
+            <span className="text-base absolute bottom-4 right-4">AI Assistant</span>
+          </button>
+        </div>
+        </WobbleCard>
+      </div>
     </div>
   );
 };
