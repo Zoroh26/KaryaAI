@@ -1,34 +1,34 @@
 
-# 🤖 KaryaAI - AI-Powered Project Management Platform
+<img width="1000" height="313" alt="Banner" src="https://github.com/user-attachments/assets/5bebf049-3e50-470d-ae2c-9e65f49aebc5" /><br>
 
-[![Node.js](https://img.shields.io/badge/Node.js-20.0+-green.svg)](https://nodejs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.9+-blue.svg)](https://www.typescriptlang.org/)
-[![Express.js](https://img.shields.io/badge/Express.js-4.21+-lightgrey.svg)](https://expressjs.com/)
-[![Firebase](https://img.shields.io/badge/Firebase-13.4+-orange.svg)](https://firebase.google.com/)
-[![Gemini AI](https://img.shields.io/badge/Gemini-1.5--flash-blueviolet.svg)](https://ai.google.dev/)
-[![License: ISC](https://img.shields.io/badge/License-ISC-yellow.svg)](LICENSE)
+[![Node.js](https://img.shields.io/badge/Node.js-20.0%2B-brightgreen?style=for-the-badge&logo=nodejs&logoColor=white)](https://nodejs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9%2B-blue?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Express.js](https://img.shields.io/badge/Express.js-4.21%2B-lightgrey?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com/)
+[![Firebase](https://img.shields.io/badge/Firebase-13.4%2B-orange?style=for-the-badge&logo=firebase&logoColor=white)](https://firebase.google.com/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-4.1%2B-06B6D4.svg?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![License: ISC](https://img.shields.io/badge/License-ISC-yellow?style=for-the-badge)](LICENSE)
 
 **KaryaAI** is an intelligent project and task management platform that leverages Google Gemini AI for automated workflow generation and smart task assignment. Built with modern technologies including Node.js, TypeScript, Firebase, and Next.js.
 
-## ✨ Key Features
+## Key Features
 
-### 🤖 **AI-Powered Intelligence**
+### **AI-Powered Intelligence**
 - **Smart Workflow Generation**: Convert natural language requirements into structured workflows
 - **Intelligent Task Assignment**: AI-driven employee matching based on skills, workload, and availability
 - **Automated Project Planning**: Generate comprehensive project structures from simple descriptions
 
-### 🔐 **Enterprise-Grade Security**
+### **Enterprise-Grade Security**
 - **Role-Based Access Control**: Admin, Employee, and Client roles with granular permissions
 - **JWT Authentication**: Secure token-based authentication with httpOnly cookies
 - **Firebase Integration**: Robust user management and real-time database capabilities
 
-### 📊 **Comprehensive Management**
+### **Comprehensive Management**
 - **Product Lifecycle**: End-to-end product development tracking
 - **Workflow Orchestration**: Hierarchical workflow and task organization
 - **Team Collaboration**: Real-time task updates and progress tracking
 - **Performance Analytics**: Employee workload balancing and productivity insights
 
-## 🏗️ Architecture Overview
+## Architecture Overview
 
 ```
 KaryaAI/
@@ -49,7 +49,7 @@ KaryaAI/
 └── README.md           # Project overview
 ```
 
-## 🚀 Technology Stack
+## Tech Stack
 
 ### **Backend**
 - **Node.js 20+** - JavaScript runtime environment
@@ -60,7 +60,7 @@ KaryaAI/
 - **Google Gemini AI** - Advanced language model for AI features
 - **Zod** - TypeScript-first schema validation
 
-### **Frontend** *(Planned)*
+### **Frontend** 
 - **Next.js** - React framework with SSR/SSG
 - **React** - Component-based UI library
 - **Tailwind CSS** - Utility-first CSS framework
@@ -72,7 +72,7 @@ KaryaAI/
 - **PowerShell/Postman** - API testing
 - **TypeScript ESLint** - Code quality and consistency
 
-## 🛠️ Quick Start
+## Quick Start
 
 ### **Prerequisites**
 - Node.js 20.0 or higher
@@ -136,7 +136,7 @@ JWT_SECRET=your-secure-jwt-secret-minimum-32-characters
 - **Role Access**: Admin, Employee, Client role-based permissions
 - **Real-time Updates**: WebSocket support for live updates
 
-## 🤖 AI-Powered Task Assignment
+## AI-Powered Task Assignment
 
 KaryaAI's intelligent task assignment system uses a sophisticated multi-factor algorithm:
 
@@ -174,7 +174,7 @@ Response: {
 | **Employee** | Personal task management | View/update own tasks, skill management |
 | **Client** | Project ownership | Create products, generate workflows |
 
-## 🧪 Testing & Development
+## Testing & Development
 
 ### **API Testing**
 ```bash
@@ -210,7 +210,7 @@ $response = Invoke-RestMethod -Uri "http://localhost:3000/api/auth/login" `
 Write-Host "Token received: $($response.token)"
 ```
 
-## 🚀 Deployment
+## Deployment
 
 ### **Development**
 ```bash
@@ -233,23 +233,22 @@ docker run -p 3000:3000 karyaai-backend
 - **Development**: Local Firebase project, test Gemini key
 - **Production**: Production Firebase project, secured environment variables
 
-## 📁 Project Structure
+## Project Structure
 
 ```
-📦 KaryaAI
-├── 📂 backend/           # Node.js API server
-│   ├── 📂 src/
-│   │   ├── 📂 controllers/   # API endpoint handlers
-│   │   ├── 📂 services/      # Business logic & AI
-│   │   ├── 📂 middleware/    # Auth & validation
-│   │   └── 📂 config/        # Firebase & Gemini
-│   └── 📄 README.md      # Backend documentation
-├── 📂 frontend/          # Next.js application (planned)
-├── 📄 FRONTEND_AI_PROMPT.md  # AI generation guide
-└── 📄 README.md          # Project overview
+KaryaAI
+├── backend/           # Node.js API server
+│   ├── src/
+│   │   ├── controllers/   # API endpoint handlers
+│   │   ├── services/      # Business logic & AI
+│   │   ├── middleware/    # Auth & validation
+│   │   └── config/        # Firebase & Gemini
+│   └── README.md      # Backend documentation
+├── frontend/          
+└── README.md          # Project overview
 ```
 
-## �️ Contributing
+## Contributing
 
 ### **Development Workflow**
 1. **Fork** the repository
@@ -266,25 +265,20 @@ docker run -p 3000:3000 karyaai-backend
 - **Error handling** with centralized middleware
 - **Security** best practices (JWT, CORS, validation)
 
-## 📈 Roadmap
+##  Roadmap
 
-### **Current Status** ✅
+### **Current Status** 
 - Backend API fully implemented and tested
 - AI-powered workflow generation and task assignment
 - Role-based authentication and authorization
 - Comprehensive documentation and testing guides
 
-### **Planned Features** 🚧
-- **Frontend Application**: Next.js dashboard with React components
+### **Planned Features** 
 - **Real-time Updates**: WebSocket integration for live task updates
 - **Advanced Analytics**: Employee performance and project insights
 - **Mobile Support**: Responsive design and mobile-first approach
 - **Integrations**: Slack, email notifications, calendar sync
 
-## 📞 Support & Contact
-
-- **Documentation**: See `/backend/README.md` for detailed API docs
-- **Issues**: Report bugs and feature requests on GitHub Issues
 - **Discussions**: Join project discussions for questions and ideas
 - **Email**: Contact the maintainer for enterprise inquiries
 
