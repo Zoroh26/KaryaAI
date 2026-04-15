@@ -31,8 +31,18 @@ export class WorkflowController {
       }
 
       // Verify product exists and user has access
-      const product = await productService.getProductById(productId);
-      
+      let product;
+      try {
+        product = await productService.getProductById(productId);
+      } catch {
+        res.status(404).json({
+          success: false,
+          error: 'Product not found',
+          code: 'PRODUCT_NOT_FOUND'
+        });
+        return;
+      }
+
       // Check if user has access to this product
       if (req.user.role !== 'admin' && product.clientId !== req.user.uid) {
         res.status(403).json({
@@ -43,9 +53,19 @@ export class WorkflowController {
         return;
       }
 
+      const projectDescription = description || product.description;
+      if (!projectDescription) {
+        res.status(400).json({
+          success: false,
+          error: 'Project description is required (provide in body or ensure product has a description)',
+          code: 'MISSING_DESCRIPTION'
+        });
+        return;
+      }
+
       // Generate workflow using AI
       const workflowData = await workflowService.generateWorkflow(
-        description || product.description,
+        projectDescription,
         productId,
         product.clientId
       );
@@ -58,9 +78,11 @@ export class WorkflowController {
 
     } catch (error: any) {
       console.error('WorkflowController.generateWorkflow error:', error);
-      res.status(500).json({
+      // Pass through 429 from Gemini so the caller can detect quota exhaustion
+      const status = error?.status === 429 || error?.message?.includes('429') ? 429 : 500;
+      res.status(status).json({
         success: false,
-        error: 'Failed to generate workflow',
+        error: process.env.NODE_ENV !== 'production' ? error.message : 'Failed to generate workflow',
         code: 'GENERATE_WORKFLOW_ERROR'
       });
     }

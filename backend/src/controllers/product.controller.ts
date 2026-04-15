@@ -46,7 +46,7 @@ export class ProductController {
       console.error('ProductController.createProduct error:', error);
       res.status(500).json({
         success: false,
-        error: 'Failed to create product',
+        error: process.env.NODE_ENV !== 'production' ? error.message : 'Failed to create product',
         code: 'CREATE_PRODUCT_ERROR'
       });
     }

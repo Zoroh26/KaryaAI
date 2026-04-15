@@ -13,10 +13,22 @@ export class TaskAssignmentService {
   async assignTasksToEmployees(tasks: Task[]): Promise<AssignmentResult[]> {
     try {
       const availableEmployees = await firebaseService.getAvailableEmployees();
-      
+
       if (availableEmployees.length === 0) {
         throw new Error('No available employees found');
       }
+
+      // Pre-fetch active task counts for ALL employees in parallel — avoids N+1 per scoring call
+      const employeeTaskCountMap = new Map<string, number>();
+      const tasksByEmployee = await Promise.all(
+        availableEmployees.map(e => firebaseService.getTasksByEmployee(e.id))
+      );
+      availableEmployees.forEach((e, idx) => {
+        const activeTasks = tasksByEmployee[idx].filter(t =>
+          ['assigned', 'in_progress'].includes(t.status)
+        );
+        employeeTaskCountMap.set(e.id, activeTasks.length);
+      });
 
       const assignments: AssignmentResult[] = [];
 
@@ -25,8 +37,8 @@ export class TaskAssignmentService {
           continue; // Skip already assigned tasks
         }
 
-        const bestMatch = await this.findBestEmployeeForTask(task, availableEmployees);
-        
+        const bestMatch = this.findBestEmployeeForTask(task, availableEmployees, employeeTaskCountMap);
+
         if (bestMatch) {
           // Update task with assignment
           await firebaseService.updateTask(task.id, {
@@ -34,17 +46,17 @@ export class TaskAssignmentService {
             status: 'assigned',
           });
 
-          // Update employee availability if they reach capacity
-          const employeeTasks = await firebaseService.getTasksByEmployee(bestMatch.employee.id);
-          const activeTasksCount = employeeTasks.filter(t => 
-            ['assigned', 'in_progress'].includes(t.status)
-          ).length;
+          // Increment the in-memory count so subsequent tasks in this run see the updated workload
+          const current = employeeTaskCountMap.get(bestMatch.employee.id) ?? 0;
+          const newCount = current + 1;
+          employeeTaskCountMap.set(bestMatch.employee.id, newCount);
 
-          // If employee has 3+ active tasks, mark as unavailable
-          if (activeTasksCount >= 3) {
-            await firebaseService.updateUser(bestMatch.employee.id, {
-              isAvailable: false,
-            });
+          // If employee has reached 3 active tasks, mark unavailable
+          if (newCount >= 3) {
+            await firebaseService.updateUser(bestMatch.employee.id, { isAvailable: false });
+            // Remove from future scoring by filtering them out
+            const idx = availableEmployees.findIndex(e => e.id === bestMatch.employee.id);
+            if (idx !== -1) availableEmployees.splice(idx, 1);
           }
 
           assignments.push({
@@ -64,14 +76,14 @@ export class TaskAssignmentService {
     }
   }
 
-  private async findBestEmployeeForTask(
-    task: Task, 
-    employees: User[]
-  ): Promise<{
-    employee: User;
-    score: number;
-    reason: string;
-  } | null> {
+  /**
+   * Pure, synchronous scoring — uses pre-fetched workload counts (no DB calls)
+   */
+  private findBestEmployeeForTask(
+    task: Task,
+    employees: User[],
+    taskCountMap: Map<string, number>
+  ): { employee: User; score: number; reason: string } | null {
     let bestMatch: { employee: User; score: number; reason: string } | null = null;
 
     for (const employee of employees) {
@@ -79,7 +91,7 @@ export class TaskAssignmentService {
         continue;
       }
 
-      const score = await this.calculateMatchScore(task, employee);
+      const score = this.calculateMatchScore(task, employee, taskCountMap);
       const reason = this.generateMatchReason(task, employee, score);
 
       if (!bestMatch || score > bestMatch.score) {
@@ -90,35 +102,40 @@ export class TaskAssignmentService {
     return bestMatch;
   }
 
-  private async calculateMatchScore(task: Task, employee: User): Promise<number> {
+  /**
+   * Synchronous score — uses the pre-fetched taskCountMap, zero Firestore reads
+   */
+  private calculateMatchScore(
+    task: Task,
+    employee: User,
+    taskCountMap: Map<string, number>
+  ): number {
     let score = 0;
 
     // Skill matching (40% of score)
-    const skillMatches = task.skillRequired.filter(skill => 
-      employee.skillset?.some(empSkill => 
+    const skillMatches = task.skillsRequired.filter(skill =>
+      employee.skillset?.some(empSkill =>
         empSkill.toLowerCase().includes(skill.toLowerCase()) ||
         skill.toLowerCase().includes(empSkill.toLowerCase())
       )
     ).length;
-    
-    const skillScore = (skillMatches / task.skillRequired.length) * 40;
+
+    const skillScore = task.skillsRequired.length > 0
+      ? (skillMatches / task.skillsRequired.length) * 40
+      : 0;
     score += skillScore;
 
-    // Workload consideration (30% of score)
-    const employeeTasks = await firebaseService.getTasksByEmployee(employee.id);
-    const activeTasksCount = employeeTasks.filter(t => 
-      ['assigned', 'in_progress'].includes(t.status)
-    ).length;
-
+    // Workload consideration (30% of score) — uses pre-fetched count
+    const activeTasksCount = taskCountMap.get(employee.id) ?? 0;
     const workloadScore = Math.max(0, (3 - activeTasksCount) / 3) * 30;
     score += workloadScore;
 
     // Priority consideration (20% of score)
-    const priorityScore = task.priority === 'High' ? 20 : 
+    const priorityScore = task.priority === 'High' ? 20 :
                          task.priority === 'Medium' ? 15 : 10;
     score += priorityScore;
 
-    // Experience boost (10% of score) - employees with more skills get slight preference
+    // Experience boost (10% of score)
     const experienceScore = Math.min((employee.skillset?.length || 0) / 10, 1) * 10;
     score += experienceScore;
 
@@ -126,16 +143,16 @@ export class TaskAssignmentService {
   }
 
   private generateMatchReason(task: Task, employee: User, score: number): string {
-    const skillMatches = task.skillRequired.filter(skill => 
-      employee.skillset?.some(empSkill => 
+    const skillMatches = task.skillsRequired.filter(skill =>
+      employee.skillset?.some(empSkill =>
         empSkill.toLowerCase().includes(skill.toLowerCase())
       )
     );
 
     if (score >= 80) {
-      return `Excellent match: ${skillMatches.length}/${task.skillRequired.length} skills matched, low workload`;
+      return `Excellent match: ${skillMatches.length}/${task.skillsRequired.length} skills matched, low workload`;
     } else if (score >= 60) {
-      return `Good match: ${skillMatches.length}/${task.skillRequired.length} skills matched`;
+      return `Good match: ${skillMatches.length}/${task.skillsRequired.length} skills matched`;
     } else if (score >= 40) {
       return `Fair match: Some relevant skills, available capacity`;
     } else {

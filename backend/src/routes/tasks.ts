@@ -14,12 +14,12 @@ const assignTasksSchema = z.object({
   taskIds: z.array(z.string()),
 });
 
-// Task management routes
+// Task management routes — order matters: specific paths before parameterized ones
 router.get('/', taskController.getTasks);
 router.post('/', validateBody(insertTaskSchema), taskController.createTask);
+router.post('/assign', validateBody(assignTasksSchema), taskController.assignTasks);
+router.get('/employee/:employeeId', taskController.getEmployeeTasks); // MUST be before /:id
 router.get('/:id', taskController.getTaskById);
 router.put('/:id', taskController.updateTask);
-router.post('/assign', validateBody(assignTasksSchema), taskController.assignTasks);
-router.get('/employee/:employeeId', taskController.getEmployeeTasks);
 
 export default router;

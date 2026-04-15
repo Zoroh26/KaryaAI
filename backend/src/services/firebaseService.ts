@@ -24,7 +24,7 @@ export class FirebaseService {
   async getUserByEmail(email: string): Promise<User | null> {
     if (!firestore) throw new Error('Firebase not initialized');
     const snapshot = await firestore.collection('users').where('email', '==', email).limit(1).get();
-    return snapshot.empty ? null : (snapshot.docs[0].data() as User);
+    return snapshot.empty ? null : ({ id: snapshot.docs[0].id, ...snapshot.docs[0].data() } as User);
   }
 
   async updateUser(id: string, updates: Partial<User>): Promise<void> {

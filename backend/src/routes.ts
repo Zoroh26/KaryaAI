@@ -1,4 +1,10 @@
-import type { Express } from "express";
+/**
+ * @deprecated All route registration has been consolidated into src/app.ts.
+ * This file (routes.ts) is no longer used by the running server.
+ * It is kept temporarily to avoid breaking any tooling that may reference it.
+ * Safe to delete after confirming nothing imports registerRoutes().
+ */
+
 import { createServer, type Server } from "http";
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';

@@ -24,6 +24,12 @@ if (hasFirebaseConfig && !admin.apps.length) {
       credential: admin.credential.cert(firebaseConfig),
       projectId: firebaseConfig.projectId,
     });
+
+    // Allow undefined values to be silently dropped when writing to Firestore.
+    // This prevents runtime errors when optional fields (e.g. estimatedBudget, deadline)
+    // are not provided.
+    admin.firestore().settings({ ignoreUndefinedProperties: true });
+
     
     firebaseInitialized = true;
     console.log('🔥 Firebase Admin initialized successfully');

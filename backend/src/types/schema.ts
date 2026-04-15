@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
-// Base interfaces
+// ─── Base interfaces ──────────────────────────────────────────────────────────
+
 export interface User {
   id: string;
   email: string;
@@ -53,7 +54,8 @@ export interface Workflow {
   title: string;
   description: string;
   phases: WorkflowPhase[];
-  totalHours: number;
+  /** Total estimated hours across all phases */
+  estimatedHours: number;
   complexity: 'Low' | 'Medium' | 'High';
   priority: 'Low' | 'Medium' | 'High';
   status: WorkflowStatus;
@@ -63,7 +65,8 @@ export interface Workflow {
 
 export interface WorkflowPhase {
   id: string;
-  title: string;
+  /** Phase display name */
+  name: string;
   description: string;
   tasks: WorkflowTask[];
   estimatedHours: number;
@@ -75,14 +78,24 @@ export interface WorkflowTask {
   title: string;
   description: string;
   estimatedHours: number;
-  skillRequired: string[];
+  /** Skills required — plural form, consistent across the codebase */
+  skillsRequired: string[];
   priority: 'Low' | 'Medium' | 'High';
   status: 'pending' | 'assigned' | 'in_progress' | 'completed';
   assignedTo?: string;
   assignedToName?: string;
 }
 
-export type WorkflowStatus = 'pending' | 'approved' | 'in_progress' | 'completed' | 'cancelled';
+// Merged WorkflowStatus — superset of both old definitions
+export type WorkflowStatus =
+  | 'draft'
+  | 'generated'
+  | 'pending'
+  | 'pending_approval'
+  | 'approved'
+  | 'in_progress'
+  | 'completed'
+  | 'cancelled';
 
 export interface InsertWorkflow {
   productId: string;
@@ -90,12 +103,13 @@ export interface InsertWorkflow {
   title: string;
   description: string;
   phases: WorkflowPhase[];
-  totalHours: number;
+  estimatedHours: number;
   complexity: 'Low' | 'Medium' | 'High';
   priority: 'Low' | 'Medium' | 'High';
   status?: WorkflowStatus;
 }
 
+/** Flat task record stored in the top-level `tasks` collection */
 export interface Task {
   id: string;
   workflowId: string;
@@ -103,7 +117,8 @@ export interface Task {
   phaseId: string;
   title: string;
   description: string;
-  skillRequired: string[];
+  /** Skills required — plural form */
+  skillsRequired: string[];
   estimatedHours: number;
   priority: 'Low' | 'Medium' | 'High';
   status: TaskStatus;
@@ -124,7 +139,7 @@ export interface InsertTask {
   phaseId: string;
   title: string;
   description: string;
-  skillRequired: string[];
+  skillsRequired: string[];
   estimatedHours: number;
   priority: 'Low' | 'Medium' | 'High';
   status?: TaskStatus;
@@ -132,7 +147,8 @@ export interface InsertTask {
   assignedToName?: string;
 }
 
-// Zod validation schemas
+// ─── Zod validation schemas ───────────────────────────────────────────────────
+
 export const userRoleSchema = z.enum(['client', 'admin', 'employee']);
 
 export const insertUserSchema = z.object({
@@ -163,7 +179,7 @@ export const insertTaskSchema = z.object({
   phaseId: z.string(),
   title: z.string().min(1),
   description: z.string().min(1),
-  skillRequired: z.array(z.string()),
+  skillsRequired: z.array(z.string()),
   estimatedHours: z.number().positive(),
   priority: prioritySchema,
   status: taskStatusSchema.optional().default('unassigned'),
@@ -171,14 +187,17 @@ export const insertTaskSchema = z.object({
   assignedToName: z.string().optional(),
 });
 
-export const workflowStatusSchema = z.enum(['pending', 'approved', 'in_progress', 'completed', 'cancelled']);
+export const workflowStatusSchema = z.enum([
+  'draft', 'generated', 'pending', 'pending_approval',
+  'approved', 'in_progress', 'completed', 'cancelled',
+]);
 
 export const workflowTaskSchema = z.object({
   id: z.string(),
   title: z.string(),
   description: z.string(),
   estimatedHours: z.number().positive(),
-  skillRequired: z.array(z.string()),
+  skillsRequired: z.array(z.string()),
   priority: prioritySchema,
   status: z.enum(['pending', 'assigned', 'in_progress', 'completed']),
   assignedTo: z.string().optional(),
@@ -187,7 +206,7 @@ export const workflowTaskSchema = z.object({
 
 export const workflowPhaseSchema = z.object({
   id: z.string(),
-  title: z.string(),
+  name: z.string(),
   description: z.string(),
   tasks: z.array(workflowTaskSchema),
   estimatedHours: z.number().positive(),
@@ -200,7 +219,7 @@ export const insertWorkflowSchema = z.object({
   title: z.string().min(1),
   description: z.string().min(1),
   phases: z.array(workflowPhaseSchema),
-  totalHours: z.number().positive(),
+  estimatedHours: z.number().positive(),
   complexity: z.enum(['Low', 'Medium', 'High']),
   priority: prioritySchema,
   status: workflowStatusSchema.optional().default('pending'),

@@ -42,50 +42,56 @@ export class AuthMiddleware {
         return;
       }
 
-      // For custom tokens, we need to handle them differently
-      // Since we're using custom tokens from cookies, we'll verify by checking the user exists
-      let decodedToken;
+      // Verify Firebase ID token
+      let decodedToken: any;
       let uid: string;
-      
+
       try {
-        // Try to verify as ID token first
         decodedToken = await auth.verifyIdToken(token);
         uid = decodedToken.uid;
-      } catch (error) {
-        // If that fails, treat it as a custom token and extract user info differently
-        // For now, we'll get user info from the user_info cookie
-        const userInfoCookie = req.cookies?.user_info;
-        if (userInfoCookie) {
+      } catch (tokenError: any) {
+        // In development, also accept Firebase custom tokens (Admin SDK-issued).
+        // Custom tokens are JWTs whose payload contains the uid as the `sub` claim.
+        if (process.env.NODE_ENV !== 'production') {
           try {
-            const userInfo = JSON.parse(userInfoCookie);
-            uid = userInfo.uid;
-            
-            // Verify the user still exists in Firebase Auth
-            await auth.getUser(uid);
-            
-            decodedToken = {
-              uid: userInfo.uid,
-              email: userInfo.email,
-              role: userInfo.role
-            };
-          } catch (parseError) {
+            // Base64-decode the token payload (standard JWT format: header.payload.sig)
+            const payloadBase64 = token.split('.')[1];
+            if (payloadBase64) {
+              const payload = JSON.parse(
+                Buffer.from(payloadBase64.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8')
+              );
+              if (payload.uid || payload.sub) {
+                uid = payload.uid ?? payload.sub;
+                // custom tokens store email in claims.email (set in createCustomToken call)
+                const emailFromClaims = payload.claims?.email ?? '';
+                decodedToken = { uid, email: emailFromClaims };
+                console.log(`[DEV] Accepted custom token for uid: ${uid}`);
+              }
+            }
+          } catch {
+            // fall through to 401
+          }
+        }
+
+        if (!uid!) {
+          const code = (tokenError as any).code;
+          if (code === 'auth/id-token-expired') {
             res.status(401).json({
               success: false,
-              error: 'Invalid authentication token or user info',
-              code: 'INVALID_TOKEN'
+              error: 'Token expired. Please log in again.',
+              code: 'TOKEN_EXPIRED',
             });
             return;
           }
-        } else {
           res.status(401).json({
             success: false,
-            error: 'Invalid authentication token',
-            code: 'INVALID_TOKEN'
+            error: 'Invalid authentication token.',
+            code: 'INVALID_TOKEN',
           });
           return;
         }
       }
-      
+
       if (!firestore) {
         res.status(500).json({
           success: false,
@@ -107,41 +113,31 @@ export class AuthMiddleware {
         return;
       }
 
-      const userData = userDoc.data() as Omit<User, 'uid' | 'email'>;
-      
+      const userData = userDoc.data() as any;
+
       // Attach user to request
+      // Use Firestore email as primary source (always correct regardless of token type)
       req.user = {
-        uid: uid,
-        email: decodedToken.email || '',
-        ...userData
+        uid,
+        email: userData.email || decodedToken.email || '',
+        full_name: userData.full_name,
+        role: userData.role,
+        skillset: userData.skillset,
+        isAvailable: userData.isAvailable,
+        isActive: userData.isActive,
+        isDeleted: userData.isDeleted,
+        createdAt: userData.createdAt,
+        updatedAt: userData.updatedAt,
       };
+
 
       next();
     } catch (error: any) {
-      console.error('Auth verification error:', error);
-      
-      if (error.code === 'auth/id-token-expired') {
-        res.status(401).json({
-          success: false,
-          error: 'Token expired',
-          code: 'TOKEN_EXPIRED'
-        });
-        return;
-      }
-      
-      if (error.code === 'auth/invalid-id-token') {
-        res.status(401).json({
-          success: false,
-          error: 'Invalid token',
-          code: 'INVALID_TOKEN'
-        });
-        return;
-      }
-      
+      console.error('Auth middleware unexpected error:', error);
       res.status(500).json({
         success: false,
-        error: 'Authentication failed',
-        code: 'AUTH_ERROR'
+        error: 'Authentication failed unexpectedly',
+        code: 'AUTH_ERROR',
       });
     }
   }

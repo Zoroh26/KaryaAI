@@ -5,46 +5,57 @@ import { firebaseService } from '../services/firebaseService';
 import { createError } from '../middlewares/errorHandler';
 
 export class AIController {
-  async generateWorkflow(req: Request, res: Response) {
+  /**
+   * Generate a workflow using AI.
+   * Previously called analyzeProjectComplexity as a second Gemini round-trip;
+   * that is removed — callers can use /analyze-project separately if needed.
+   */
+  async generateWorkflow(req: Request, res: Response): Promise<void> {
     try {
       const { description, productId, clientId } = req.body;
-      
-      if (!description || typeof description !== 'string') {
-        throw createError('Project description is required', 400);
-      }
 
-      if (!productId || !clientId) {
-        throw createError('Product ID and Client ID are required', 400);
+      if (!description || typeof description !== 'string') {
+        res.status(400).json({ success: false, error: 'Project description is required' });
+        return;
+      }
+      if (!productId || typeof productId !== 'string') {
+        res.status(400).json({ success: false, error: 'Product ID is required' });
+        return;
+      }
+      if (!clientId || typeof clientId !== 'string') {
+        res.status(400).json({ success: false, error: 'Client ID is required' });
+        return;
       }
 
       const workflow = await workflowService.generateWorkflow(description, productId, clientId);
-      const analysis = await workflowService.analyzeProjectComplexity(description);
 
       res.json({
+        success: true,
         workflow,
-        analysis,
         message: 'Workflow generated successfully',
       });
     } catch (error) {
       console.error('AI generate workflow error:', error);
-      throw createError('Failed to generate workflow with AI', 500);
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to generate workflow with AI',
+      });
     }
   }
 
-  async assignTasks(req: Request, res: Response) {
+  async assignTasks(req: Request, res: Response): Promise<void> {
     try {
       const { workflowId, taskIds } = req.body;
 
       let tasks = [];
 
       if (workflowId) {
-        // Get all unassigned tasks from workflow
-        tasks = await firebaseService.getTasks({ 
-          workflowId, 
-          status: 'unassigned' 
+        // Get all unassigned tasks from the flat tasks collection for this workflow
+        tasks = await firebaseService.getTasks({
+          workflowId,
+          status: 'unassigned',
         });
       } else if (taskIds && Array.isArray(taskIds)) {
-        // Get specific tasks
         for (const taskId of taskIds) {
           const task = await firebaseService.getTask(taskId);
           if (task && task.status === 'unassigned') {
@@ -52,59 +63,68 @@ export class AIController {
           }
         }
       } else {
-        throw createError('Either workflowId or taskIds is required', 400);
+        res.status(400).json({ success: false, error: 'Either workflowId or taskIds is required' });
+        return;
       }
 
       if (tasks.length === 0) {
-        throw createError('No unassigned tasks found', 404);
+        res.status(404).json({ success: false, error: 'No unassigned tasks found' });
+        return;
       }
 
       const assignments = await taskAssignmentService.assignTasksToEmployees(tasks);
 
       res.json({
+        success: true,
         message: 'Tasks assigned successfully using AI',
         assignments,
         totalAssigned: assignments.length,
       });
     } catch (error) {
       console.error('AI assign tasks error:', error);
-      throw error;
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to assign tasks',
+      });
     }
   }
 
-  async analyzeProject(req: Request, res: Response) {
+  async analyzeProject(req: Request, res: Response): Promise<void> {
     try {
       const { description } = req.body;
-      
+
       if (!description || typeof description !== 'string') {
-        throw createError('Project description is required', 400);
+        res.status(400).json({ success: false, error: 'Project description is required' });
+        return;
       }
 
       const analysis = await workflowService.analyzeProjectComplexity(description);
 
       res.json({
+        success: true,
         analysis,
         message: 'Project analysis completed',
       });
     } catch (error) {
       console.error('AI analyze project error:', error);
-      throw createError('Failed to analyze project with AI', 500);
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to analyze project',
+      });
     }
   }
 
-  async getRecommendations(req: Request, res: Response) {
+  async getRecommendations(req: Request, res: Response): Promise<void> {
     try {
       const { productId } = req.params;
-      
+
       const product = await firebaseService.getProduct(productId);
       if (!product) {
-        throw createError('Product not found', 404);
+        res.status(404).json({ success: false, error: 'Product not found' });
+        return;
       }
 
-      // Get project analysis
       const analysis = await workflowService.analyzeProjectComplexity(product.description);
-      
-      // Get current tasks and their status
       const tasks = await firebaseService.getTasks({ productId });
       const workflows = await firebaseService.getWorkflows({ productId });
 
@@ -121,12 +141,16 @@ export class AIController {
       };
 
       res.json({
+        success: true,
         recommendations,
         message: 'Recommendations generated successfully',
       });
     } catch (error) {
       console.error('AI recommendations error:', error);
-      throw error;
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to generate recommendations',
+      });
     }
   }
 

@@ -6,59 +6,59 @@ import { z } from 'zod';
 
 const router = Router();
 
-// Demo endpoint without authentication for testing
+// ─── Public demo endpoint (no auth) ──────────────────────────────────────────
+
 router.post('/demo-workflow', async (req, res): Promise<void> => {
   try {
-    const { description, requirements, timeline, budget } = req.body;
-    
-    if (!description) {
-      res.status(400).json({ message: 'Description is required' });
+    const { description } = req.body;
+
+    if (!description || typeof description !== 'string' || description.length < 10) {
+      res.status(400).json({ success: false, message: 'Description is required (min 10 characters)' });
       return;
     }
 
-    // Import workflowService here to avoid circular dependencies
     const { workflowService } = await import('../services/workflow.service');
-    
-    // For demo purposes, use demo IDs
-    const workflow = await workflowService.generateWorkflow(
-      description, 
-      'demo-product-id', 
-      'demo-client-id'
-    );
+    const workflow = await workflowService.generateWorkflow(description, 'demo-product-id', 'demo-client-id');
 
-    res.json({ 
-      success: true,
-      workflow,
-      message: 'Workflow generated successfully' 
-    });
+    res.json({ success: true, workflow, message: 'Workflow generated successfully' });
   } catch (error) {
     console.error('Error generating demo workflow:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
       message: 'Failed to generate workflow',
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 });
 
-// Apply authentication to all other routes
+// ─── Apply authentication to all routes below ────────────────────────────────
+
 router.use(authenticateToken);
 
+// Zod schemas
+
 const generateWorkflowSchema = z.object({
-  description: z.string().min(10),
+  description: z.string().min(10, 'Description must be at least 10 characters'),
+  productId: z.string().min(1, 'Product ID is required'),
+  clientId: z.string().min(1, 'Client ID is required'),
 });
 
 const assignTasksSchema = z.object({
   workflowId: z.string().optional(),
   taskIds: z.array(z.string()).optional(),
-}).refine(data => data.workflowId || data.taskIds, {
-  message: "Either workflowId or taskIds is required"
+}).refine(data => data.workflowId || (data.taskIds && data.taskIds.length > 0), {
+  message: 'Either workflowId or taskIds (non-empty) is required',
 });
 
-// AI service routes
-router.post('/generate-workflow', validateBody(generateWorkflowSchema), aiController.generateWorkflow);
-router.post('/assign-tasks', validateBody(assignTasksSchema), aiController.assignTasks);
-router.post('/analyze-project', validateBody(generateWorkflowSchema), aiController.analyzeProject);
-router.get('/recommendations/:productId', aiController.getRecommendations);
+const analyzeProjectSchema = z.object({
+  description: z.string().min(10, 'Description must be at least 10 characters'),
+});
+
+// ─── AI routes ────────────────────────────────────────────────────────────────
+
+router.post('/generate-workflow', validateBody(generateWorkflowSchema), aiController.generateWorkflow.bind(aiController));
+router.post('/assign-tasks', validateBody(assignTasksSchema), aiController.assignTasks.bind(aiController));
+router.post('/analyze-project', validateBody(analyzeProjectSchema), aiController.analyzeProject.bind(aiController));
+router.get('/recommendations/:productId', aiController.getRecommendations.bind(aiController));
 
 export default router;

@@ -169,15 +169,17 @@ export class TaskController {
   private async checkWorkflowCompletion(workflowId: string) {
     try {
       const tasks = await firebaseService.getTasks({ workflowId });
-      const allCompleted = tasks.every(task => task.status === 'completed');
+      // Exclude cancelled tasks — they don't block completion
+      const activeTasks = tasks.filter(t => t.status !== 'cancelled');
+      const allCompleted = activeTasks.length > 0 && activeTasks.every(task => task.status === 'completed');
       
       if (allCompleted) {
-        // Update workflow status
+        // Mark workflow as COMPLETED (not 'approved' — approved means work is authorized, completed means it's done)
         await firebaseService.updateWorkflow(workflowId, {
-          status: 'approved', // or 'completed' if you have that status
+          status: 'completed',
         });
 
-        // Get workflow to update product
+        // Update product status
         const workflow = await firebaseService.getWorkflow(workflowId);
         if (workflow) {
           await firebaseService.updateProduct(workflow.productId, {
@@ -187,7 +189,7 @@ export class TaskController {
       }
     } catch (error) {
       console.error('Error checking workflow completion:', error);
-      // Don't throw error here as it's a side effect
+      // Don't throw — this is a background side-effect
     }
   }
 }
