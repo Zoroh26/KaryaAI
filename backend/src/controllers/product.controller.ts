@@ -19,6 +19,14 @@ export class ProductController {
 
       const productData: CreateProductData = req.body;
 
+      // Compatibility mapping for Postman guide (name -> title, type -> category)
+      if (!productData.title && (req.body as any).name) {
+        productData.title = (req.body as any).name;
+      }
+      if (!productData.category && (req.body as any).type) {
+        productData.category = (req.body as any).type;
+      }
+
       // Validation
       if (!productData.title || !productData.description) {
         res.status(400).json({

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { aiController } from '../controllers/aiController';
-import { authenticateToken } from '../middlewares/auth';
+import { authenticateToken, requireAdmin, requireClientOrAdmin } from '../middlewares/auth';
 import { validateBody } from '../middlewares/validation';
 import { z } from 'zod';
 
@@ -46,6 +46,7 @@ const generateWorkflowSchema = z.object({
 const assignTasksSchema = z.object({
   workflowId: z.string().optional(),
   taskIds: z.array(z.string()).optional(),
+  preview: z.boolean().optional().default(false),
 }).refine(data => data.workflowId || (data.taskIds && data.taskIds.length > 0), {
   message: 'Either workflowId or taskIds (non-empty) is required',
 });
@@ -56,9 +57,9 @@ const analyzeProjectSchema = z.object({
 
 // ─── AI routes ────────────────────────────────────────────────────────────────
 
-router.post('/generate-workflow', validateBody(generateWorkflowSchema), aiController.generateWorkflow.bind(aiController));
-router.post('/assign-tasks', validateBody(assignTasksSchema), aiController.assignTasks.bind(aiController));
-router.post('/analyze-project', validateBody(analyzeProjectSchema), aiController.analyzeProject.bind(aiController));
-router.get('/recommendations/:productId', aiController.getRecommendations.bind(aiController));
+router.post('/generate-workflow', requireClientOrAdmin, validateBody(generateWorkflowSchema), aiController.generateWorkflow.bind(aiController));
+router.post('/assign-tasks', requireAdmin, validateBody(assignTasksSchema), aiController.assignTasks.bind(aiController));
+router.post('/analyze-project', requireClientOrAdmin, validateBody(analyzeProjectSchema), aiController.analyzeProject.bind(aiController));
+router.get('/recommendations/:productId', requireClientOrAdmin, aiController.getRecommendations.bind(aiController));
 
 export default router;

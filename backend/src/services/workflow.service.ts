@@ -1,5 +1,4 @@
 import { ai, GEMINI_MODEL } from '../config/gemini';
-
 import { firestore } from '../config/firebase';
 import {
   Workflow,
@@ -14,6 +13,7 @@ import {
 } from '../models/workflow.model';
 import { productService } from './products.services';
 import { Task } from '../types/schema';
+import { hoursToStoryPoints } from '../utils/storyPoints';
 
 export class WorkflowService {
   private readonly workflowsCollection = 'workflows';
@@ -92,6 +92,7 @@ export class WorkflowService {
           description: aiTask.description,
           skillsRequired: aiTask.skillsRequired,
           estimatedHours: aiTask.estimatedHours,
+          storyPoints: hoursToStoryPoints(aiTask.estimatedHours),
           priority: aiTask.priority,
           status: 'pending',
           order: taskIndex + 1,
@@ -459,6 +460,8 @@ Respond with JSON in this exact format:
         description: embeddedTask.description,
         skillsRequired: embeddedTask.skillsRequired,
         estimatedHours: embeddedTask.estimatedHours,
+        // Use embedded storyPoints if available; compute from hours for legacy workflows
+        storyPoints: embeddedTask.storyPoints ?? hoursToStoryPoints(embeddedTask.estimatedHours),
         priority: embeddedTask.priority as 'Low' | 'Medium' | 'High',
         status: 'unassigned',
         createdAt: new Date(),

@@ -51,18 +51,30 @@ export class AuthMiddleware {
         uid = decodedToken.uid;
       } catch (tokenError: any) {
         // In development, also accept Firebase custom tokens (Admin SDK-issued).
-        // Custom tokens are JWTs whose payload contains the uid as the `sub` claim.
+        // Custom tokens are JWTs signed by the Admin SDK private key;
+        // we cannot fully verify the signature here, but we extract the uid
+        // from the payload and then require the Firestore user doc to exist —
+        // so a forged token with a non-existent uid is still rejected at the
+        // Firestore lookup below.
+        //
+        // NOTE: this fallback only accepts the 3-segment JWT structure used by
+        // Admin SDK custom tokens (header.payload.signature).  Plain garbage strings
+        // are rejected because JSON.parse of the payload will throw.
         if (process.env.NODE_ENV !== 'production') {
           try {
-            // Base64-decode the token payload (standard JWT format: header.payload.sig)
-            const payloadBase64 = token.split('.')[1];
-            if (payloadBase64) {
+            const parts = token.split('.');
+            // Must be a proper 3-part JWT
+            if (parts.length === 3 && parts[0] && parts[1] && parts[2]) {
+              // Reject obviously fake tokens (signature must be non-trivial length)
+              if (parts[2].length < 20) {
+                throw new Error('Signature too short to be a real token');
+              }
+              const payloadBase64 = parts[1];
               const payload = JSON.parse(
                 Buffer.from(payloadBase64.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8')
               );
               if (payload.uid || payload.sub) {
                 uid = payload.uid ?? payload.sub;
-                // custom tokens store email in claims.email (set in createCustomToken call)
                 const emailFromClaims = payload.claims?.email ?? '';
                 decodedToken = { uid, email: emailFromClaims };
                 console.log(`[DEV] Accepted custom token for uid: ${uid}`);

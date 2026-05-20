@@ -26,7 +26,7 @@ export class AuthController {
 
     } catch (error: any) {
       console.error('AuthController.signup error:', error);
-      
+
       // Handle specific Firebase Auth errors
       if (error.code === 'auth/email-already-exists') {
         res.status(409).json({
@@ -36,7 +36,7 @@ export class AuthController {
         });
         return;
       }
-      
+
       if (error.code === 'auth/invalid-email') {
         res.status(400).json({
           success: false,
@@ -45,7 +45,7 @@ export class AuthController {
         });
         return;
       }
-      
+
       if (error.code === 'auth/weak-password') {
         res.status(400).json({
           success: false,
@@ -56,10 +56,10 @@ export class AuthController {
       }
 
       // Handle validation errors
-      if (error.message.includes('Missing required fields') || 
-          error.message.includes('Invalid email format') ||
-          error.message.includes('Password must be') ||
-          error.message.includes('Invalid role')) {
+      if (error.message.includes('Missing required fields') ||
+        error.message.includes('Invalid email format') ||
+        error.message.includes('Password must be') ||
+        error.message.includes('Invalid role')) {
         res.status(400).json({
           success: false,
           error: error.message,
@@ -67,7 +67,7 @@ export class AuthController {
         });
         return;
       }
-      
+
       res.status(500).json({
         success: false,
         error: 'Failed to create user',
@@ -101,7 +101,7 @@ export class AuthController {
 
       // Set authentication token cookie
       res.cookie('auth_token', token, cookieOptions);
-      
+
       // Set user info cookie (not HTTP-only so frontend can read it)
       res.cookie('user_info', JSON.stringify({
         uid: user.uid,
@@ -147,8 +147,8 @@ export class AuthController {
       }
 
       // Handle authentication errors
-      if (error.message.includes('Invalid credentials') || 
-          error.message.includes('User profile not found')) {
+      if (error.message.includes('Invalid credentials') ||
+        error.message.includes('User profile not found')) {
         res.status(401).json({
           success: false,
           error: 'Invalid credentials',
@@ -197,11 +197,11 @@ export class AuthController {
 
     } catch (error: any) {
       console.error('AuthController.logout error:', error);
-      
+
       // Even if logout has errors, we should clear cookies and respond successfully
       res.clearCookie('auth_token');
       res.clearCookie('user_info');
-      
+
       res.json({
         success: true,
         message: 'Logout completed (with warnings)',
@@ -226,10 +226,10 @@ export class AuthController {
         return;
       }
 
-      const { email, password } = req.body;
-
-      if (!email || !password) {
-        res.status(400).json({ success: false, error: 'email and password are required' });
+      const { uid, email } = req.body;
+      
+      if (!uid && !email) {
+        res.status(400).json({ success: false, error: 'uid or email is required' });
         return;
       }
 
@@ -238,12 +238,16 @@ export class AuthController {
         return;
       }
 
-      // Look up the user by email
+      // Look up the user
       let userRecord;
       try {
-        userRecord = await auth.getUserByEmail(email);
+        if (uid) {
+          userRecord = await auth.getUser(uid);
+        } else {
+          userRecord = await auth.getUserByEmail(email);
+        }
       } catch (err: any) {
-        res.status(401).json({ success: false, error: 'Invalid credentials' });
+        res.status(404).json({ success: false, error: 'User not found' });
         return;
       }
 

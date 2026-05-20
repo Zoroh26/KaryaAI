@@ -10,7 +10,7 @@ export interface AssignmentResult {
 }
 
 export class TaskAssignmentService {
-  async assignTasksToEmployees(tasks: Task[]): Promise<AssignmentResult[]> {
+  async assignTasksToEmployees(tasks: Task[], commit: boolean = true): Promise<AssignmentResult[]> {
     try {
       const availableEmployees = await firebaseService.getAvailableEmployees();
 
@@ -39,24 +39,30 @@ export class TaskAssignmentService {
 
         const bestMatch = this.findBestEmployeeForTask(task, availableEmployees, employeeTaskCountMap);
 
-        if (bestMatch) {
-          // Update task with assignment
-          await firebaseService.updateTask(task.id, {
-            assignedTo: bestMatch.employee.id,
-            status: 'assigned',
-          });
+        if (bestMatch && bestMatch.score > 0) {
+          if (commit) {
+            // Update task with assignment
+            await firebaseService.updateTask(task.id, {
+              assignedTo: bestMatch.employee.id,
+              status: 'assigned',
+            });
 
-          // Increment the in-memory count so subsequent tasks in this run see the updated workload
-          const current = employeeTaskCountMap.get(bestMatch.employee.id) ?? 0;
-          const newCount = current + 1;
-          employeeTaskCountMap.set(bestMatch.employee.id, newCount);
+            // Increment the in-memory count so subsequent tasks in this run see the updated workload
+            const current = employeeTaskCountMap.get(bestMatch.employee.id) ?? 0;
+            const newCount = current + 1;
+            employeeTaskCountMap.set(bestMatch.employee.id, newCount);
 
-          // If employee has reached 3 active tasks, mark unavailable
-          if (newCount >= 3) {
-            await firebaseService.updateUser(bestMatch.employee.id, { isAvailable: false });
-            // Remove from future scoring by filtering them out
-            const idx = availableEmployees.findIndex(e => e.id === bestMatch.employee.id);
-            if (idx !== -1) availableEmployees.splice(idx, 1);
+            // If employee has reached 3 active tasks, mark unavailable
+            if (newCount >= 3) {
+              await firebaseService.updateUser(bestMatch.employee.id, { isAvailable: false });
+              // Remove from future scoring by filtering them out
+              const idx = availableEmployees.findIndex(e => e.id === bestMatch.employee.id);
+              if (idx !== -1) availableEmployees.splice(idx, 1);
+            }
+          } else {
+            // For simulation, increment the virtual count but don't hit DB
+            const current = employeeTaskCountMap.get(bestMatch.employee.id) ?? 0;
+            employeeTaskCountMap.set(bestMatch.employee.id, current + 1);
           }
 
           assignments.push({
@@ -91,8 +97,8 @@ export class TaskAssignmentService {
         continue;
       }
 
-      const score = this.calculateMatchScore(task, employee, taskCountMap);
-      const reason = this.generateMatchReason(task, employee, score);
+      const { score, breakdown } = this.calculateMatchScore(task, employee, taskCountMap);
+      const reason = this.generateMatchReason(task, employee, score, breakdown);
 
       if (!bestMatch || score > bestMatch.score) {
         bestMatch = { employee, score, reason };
@@ -109,10 +115,11 @@ export class TaskAssignmentService {
     task: Task,
     employee: User,
     taskCountMap: Map<string, number>
-  ): number {
+  ): { score: number; breakdown: any } {
     let score = 0;
+    const breakdown: any = {};
 
-    // Skill matching (40% of score)
+    // 1. Skill matching (60% of score) - PRIMARY GATEKEEPER
     const skillMatches = task.skillsRequired.filter(skill =>
       employee.skillset?.some(empSkill =>
         empSkill.toLowerCase().includes(skill.toLowerCase()) ||
@@ -120,43 +127,52 @@ export class TaskAssignmentService {
       )
     ).length;
 
+    // RULE: If task requires skills and employee has 0 matches, score is 0
+    if (task.skillsRequired.length > 0 && skillMatches === 0) {
+      return { score: 0, breakdown: { skill: 0, workload: 0, priority: 0, experience: 0 } };
+    }
+
     const skillScore = task.skillsRequired.length > 0
-      ? (skillMatches / task.skillsRequired.length) * 40
-      : 0;
+      ? (skillMatches / task.skillsRequired.length) * 60
+      : 60; // 60 if no skills required (general task)
     score += skillScore;
+    breakdown.skill = Math.round(skillScore);
 
-    // Workload consideration (30% of score) — uses pre-fetched count
+    // 2. Workload consideration (20% of score)
     const activeTasksCount = taskCountMap.get(employee.id) ?? 0;
-    const workloadScore = Math.max(0, (3 - activeTasksCount) / 3) * 30;
+    const workloadScore = Math.max(0, (3 - activeTasksCount) / 3) * 20;
     score += workloadScore;
+    breakdown.workload = Math.round(workloadScore);
 
-    // Priority consideration (20% of score)
-    const priorityScore = task.priority === 'High' ? 20 :
-                         task.priority === 'Medium' ? 15 : 10;
+    // 3. Priority consideration (15% of score)
+    const priorityScore = task.priority === 'High' ? 15 :
+                         task.priority === 'Medium' ? 10 : 5;
     score += priorityScore;
+    breakdown.priority = priorityScore;
 
-    // Experience boost (10% of score)
-    const experienceScore = Math.min((employee.skillset?.length || 0) / 10, 1) * 10;
+    // 4. Experience boost (5% of score)
+    const experienceScore = Math.min((employee.skillset?.length || 0) / 10, 1) * 5;
     score += experienceScore;
+    breakdown.experience = Math.round(experienceScore);
 
-    return Math.round(score);
+    return { score: Math.round(score), breakdown };
   }
 
-  private generateMatchReason(task: Task, employee: User, score: number): string {
-    const skillMatches = task.skillsRequired.filter(skill =>
-      employee.skillset?.some(empSkill =>
-        empSkill.toLowerCase().includes(skill.toLowerCase())
-      )
-    );
+  private generateMatchReason(task: Task, employee: User, score: number, breakdown: any): string {
+    if (score === 0) {
+      return "No matching skills for required task specialized fields.";
+    }
 
+    const details = `(Skill: ${breakdown.skill}/60, Load: ${breakdown.workload}/20, Exp: ${breakdown.experience}/5)`;
+    
     if (score >= 80) {
-      return `Excellent match: ${skillMatches.length}/${task.skillsRequired.length} skills matched, low workload`;
+      return `Excellent match: High skill overlap & capacity. ${details}`;
     } else if (score >= 60) {
-      return `Good match: ${skillMatches.length}/${task.skillsRequired.length} skills matched`;
-    } else if (score >= 40) {
-      return `Fair match: Some relevant skills, available capacity`;
+      return `Good match: Qualified with reasonable workload. ${details}`;
+    } else if (score >= 30) {
+      return `Fair match: Basic capability or transferable skills. ${details}`;
     } else {
-      return `Basic match: Available employee with transferable skills`;
+      return `Low match: Only assigned as fallback. ${details}`;
     }
   }
 }
