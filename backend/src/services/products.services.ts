@@ -26,6 +26,14 @@ export class ProductService {
         deadline: productData.deadline,
         requirements: productData.requirements || [],
         attachments: [],
+        // Extended brief fields
+        targetAudience: productData.targetAudience?.trim() || undefined,
+        platformType: productData.platformType?.trim() || undefined,
+        techPreferences: productData.techPreferences?.trim() || undefined,
+        keyFeatures: productData.keyFeatures?.trim() || undefined,
+        successCriteria: productData.successCriteria?.trim() || undefined,
+        additionalNotes: productData.additionalNotes?.trim() || undefined,
+        // Meta
         isDeleted: false,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -58,55 +66,78 @@ export class ProductService {
         throw new Error('Firestore not initialized');
       }
 
-      let query: FirebaseFirestore.Query = firestore.collection(this.productsCollection);
+      console.log('ProductService.getAllProducts called with:', options);
 
-      // Apply filters
-      if (options.status) {
-        query = query.where('status', '==', options.status);
-      }
+      // Fetch all products to perform safe in-memory filtering and sorting
+      const snapshot = await firestore.collection(this.productsCollection).get();
+      
+      let products: Product[] = [];
+      snapshot.docs.forEach((doc) => {
+        const productData = doc.data() as Omit<Product, 'id'>;
+        products.push({
+          id: doc.id,
+          ...productData,
+        });
+      });
 
-      if (options.priority) {
-        query = query.where('priority', '==', options.priority);
-      }
+      // Apply filtering in memory
+      products = products.filter(product => {
+        // Filter out soft-deleted products
+        if (product.isDeleted) return false;
 
-      if (options.clientId) {
-        query = query.where('clientId', '==', options.clientId);
-      }
+        // Apply status filter
+        if (options.status && product.status !== options.status) return false;
 
-      if (options.category) {
-        query = query.where('category', '==', options.category);
-      }
+        // Apply priority filter
+        if (options.priority && product.priority !== options.priority) return false;
 
-      // Filter out soft-deleted products
-      query = query.where('isDeleted', '!=', true);
+        // Apply clientId filter
+        if (options.clientId && product.clientId !== options.clientId) return false;
 
-      // Apply sorting
+        // Apply category filter
+        if (options.category && product.category !== options.category) return false;
+
+        return true;
+      });
+
+      // Apply sorting in memory
       const sortBy = options.sortBy || 'createdAt';
       const sortOrder = options.sortOrder || 'desc';
-      query = query.orderBy(sortBy, sortOrder);
 
-      const snapshot = await query.get();
-      const total = snapshot.size;
+      products.sort((a, b) => {
+        let aValue: any;
+        let bValue: any;
 
-      // Apply pagination
+        if (sortBy === 'createdAt' || sortBy === 'updatedAt') {
+          const aField = a[sortBy as keyof Product] as any;
+          const bField = b[sortBy as keyof Product] as any;
+
+          aValue = aField?.toDate ? aField.toDate() : (aField instanceof Date ? aField : new Date(aField || 0));
+          bValue = bField?.toDate ? bField.toDate() : (bField instanceof Date ? bField : new Date(bField || 0));
+        } else {
+          aValue = a[sortBy as keyof Product] || '';
+          bValue = b[sortBy as keyof Product] || '';
+        }
+
+        if (sortOrder === 'desc') {
+          return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+        } else {
+          return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+        }
+      });
+
+      const total = products.length;
+
+      // Apply pagination in memory
       const page = options.page || 1;
       const limit = options.limit || 10;
       const startIndex = (page - 1) * limit;
       const endIndex = startIndex + limit;
 
-      const products: Product[] = [];
-      snapshot.docs.slice(startIndex, endIndex).forEach((doc) => {
-        const productData = doc.data() as Omit<Product, 'id'>;
-        products.push({
-          id: doc.id,
-          ...productData,
-          createdAt: productData.createdAt,
-          updatedAt: productData.updatedAt,
-        });
-      });
+      const paginatedProducts = products.slice(startIndex, endIndex);
 
       return {
-        products,
+        products: paginatedProducts,
         total,
         page,
         totalPages: Math.ceil(total / limit)
@@ -303,6 +334,31 @@ export class ProductService {
 
       if (updateData.requirements !== undefined) {
         updates.requirements = updateData.requirements;
+      }
+
+      // Extended brief fields
+      if (updateData.targetAudience !== undefined) {
+        updates.targetAudience = updateData.targetAudience.trim() || null;
+      }
+
+      if (updateData.platformType !== undefined) {
+        updates.platformType = updateData.platformType.trim() || null;
+      }
+
+      if (updateData.techPreferences !== undefined) {
+        updates.techPreferences = updateData.techPreferences.trim() || null;
+      }
+
+      if (updateData.keyFeatures !== undefined) {
+        updates.keyFeatures = updateData.keyFeatures.trim() || null;
+      }
+
+      if (updateData.successCriteria !== undefined) {
+        updates.successCriteria = updateData.successCriteria.trim() || null;
+      }
+
+      if (updateData.additionalNotes !== undefined) {
+        updates.additionalNotes = updateData.additionalNotes.trim() || null;
       }
 
       // Update the document

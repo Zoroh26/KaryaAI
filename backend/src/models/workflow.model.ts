@@ -35,6 +35,8 @@ export interface WorkflowTask {
   description: string;
   skillsRequired: string[];
   estimatedHours: number;
+  /** Fibonacci story points derived from estimatedHours (1/2/3/5/8/13) */
+  storyPoints: number;
   priority: 'High' | 'Medium' | 'Low';
   status: TaskStatus;
   order: number;

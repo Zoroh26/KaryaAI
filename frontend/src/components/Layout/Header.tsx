@@ -19,7 +19,7 @@ export function Header({ onToggleSidebar }: HeaderProps) {
   };
 
   const getUserInitials = () => {
-    return user?.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'U';
+    return user?.full_name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'U';
   };
 
   return (
@@ -116,7 +116,7 @@ export function Header({ onToggleSidebar }: HeaderProps) {
                 {getUserInitials()}
               </div>
               <div className="hidden sm:block text-left">
-                <div className="text-sm font-medium text-white">{user?.name || 'User'}</div>
+                <div className="text-sm font-medium text-white">{user?.full_name || 'User'}</div>
                 <div className="text-xs text-white/70 capitalize">{user?.role || 'user'}</div>
               </div>
               <i className="fas fa-chevron-down text-white/70 text-xs"></i>
@@ -126,7 +126,7 @@ export function Header({ onToggleSidebar }: HeaderProps) {
             {showUserMenu && (
               <div className="absolute right-0 mt-2 w-56 bg-black/90 backdrop-blur-sm rounded-lg shadow-lg border border-white/20 z-50">
                 <div className="p-4 border-b border-white/20">
-                  <div className="font-medium text-white">{user?.name}</div>
+                  <div className="font-medium text-white">{user?.full_name}</div>
                   <div className="text-sm text-white/70">{user?.email}</div>
                 </div>
                 <div className="py-2">

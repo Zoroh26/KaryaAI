@@ -6,6 +6,7 @@ const router = Router();
 
 // Public routes
 router.post('/signup', authController.signup.bind(authController));
+router.post('/register', authController.signup.bind(authController));
 router.post('/login', authController.login.bind(authController));
 router.post('/logout', authController.logout.bind(authController));
 

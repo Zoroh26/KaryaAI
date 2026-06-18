@@ -1,44 +1,62 @@
 export interface Product {
   id: string;
-  name: string;
-  description: string;
   clientId: string;
   clientName?: string;
-  status: 'planning' | 'in_progress' | 'review' | 'completed';
-  progress: number;
-  createdAt: string;
-  updatedAt: string;
-  workflows?: Workflow[];
+  clientEmail?: string;
+  title: string;
+  description: string;
+  category?: string;
+  priority: 'Low' | 'Medium' | 'High';
+  status: 'pending_review' | 'approved' | 'in_progress' | 'completed' | 'rejected' | 'cancelled';
+  estimatedBudget?: number;
+  deadline?: any;
+  requirements?: string[];
+  attachments?: string[];
+  // Extended brief fields
+  targetAudience?: string;
+  platformType?: string;
+  techPreferences?: string;
+  keyFeatures?: string;
+  successCriteria?: string;
+  additionalNotes?: string;
+  // Meta
+  isDeleted?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Workflow {
   id: string;
-  name: string;
-  description: string;
   productId: string;
-  status: 'pending' | 'in_progress' | 'completed';
-  priority: 'low' | 'medium' | 'high';
-  progress: number;
-  createdAt: string;
-  updatedAt: string;
-  tasks?: Task[];
+  clientId: string;
+  title: string;
+  description: string;
+  status: 'draft' | 'generated' | 'pending_approval' | 'approved' | 'in_progress' | 'completed' | 'cancelled';
+  complexity: 'Low' | 'Medium' | 'High';
+  priority: 'Low' | 'Medium' | 'High';
+  estimatedHours: number;
+  estimatedDuration: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Task {
   id: string;
-  title: string;
-  description: string;
   workflowId: string;
+  productId: string;
+  phaseId: string;
+  title: string;
+  skillsRequired: string[];
+  estimatedHours: number;
+  storyPoints: number;
+  priority: 'Low' | 'Medium' | 'High';
+  status: 'unassigned' | 'assigned' | 'in_progress' | 'completed' | 'cancelled';
   assignedTo?: string;
   assignedToName?: string;
-  status: 'pending' | 'in_progress' | 'review' | 'completed';
-  priority: 'low' | 'medium' | 'high';
-  requiredSkills: string[];
-  estimatedHours?: number;
-  deadline?: string;
-  progress: number;
-  createdAt: string;
-  updatedAt: string;
+  sprintId?: string;
+  sprintNumber?: number;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface TaskAssignment {

@@ -11,6 +11,7 @@ import productsRoutes from './routes/products.routes';
 import workflowsRoutes from './routes/workflows.routes';
 import tasksRoutes from './routes/tasks';
 import aiRoutes from './routes/ai';
+import sprintsRoutes from './routes/sprints.routes';
 import { errorHandler } from './middlewares/errorHandler';
 
 const app: Application = express();
@@ -54,10 +55,10 @@ const aiLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-app.use('/api', apiLimiter);
-app.use('/api/ai/generate-workflow', aiLimiter);
-app.use('/api/ai/demo-workflow', aiLimiter);
-app.use('/api/workflows/generate', aiLimiter);
+app.use(['/api', '/api/v1'], apiLimiter);
+app.use(['/api/ai/generate-workflow', '/api/v1/ai/generate-workflow'], aiLimiter);
+app.use(['/api/ai/demo-workflow', '/api/v1/ai/demo-workflow'], aiLimiter);
+app.use(['/api/workflows/generate', '/api/v1/workflows/generate'], aiLimiter);
 
 // ─── Health checks ────────────────────────────────────────────────────────────
 
@@ -72,7 +73,7 @@ app.get('/', async (req: Request, res: Response) => {
   });
 });
 
-app.get('/api/health', async (req: Request, res: Response) => {
+app.get(['/api/health', '/api/v1/health'], async (req: Request, res: Response) => {
   const dbConnected = await checkFirebaseConnection();
   res.json({
     status: dbConnected ? 'OK' : 'DEGRADED',
@@ -84,12 +85,13 @@ app.get('/api/health', async (req: Request, res: Response) => {
 
 // ─── API Routes ───────────────────────────────────────────────────────────────
 
-app.use('/api/auth', authRoutes);
-app.use('/api/users', usersRoutes);
-app.use('/api/products', productsRoutes);
-app.use('/api/workflows', workflowsRoutes);
-app.use('/api/tasks', tasksRoutes);
-app.use('/api/ai', aiRoutes);
+app.use(['/api/auth', '/api/v1/auth'],      authRoutes);
+app.use(['/api/users', '/api/v1/users'],     usersRoutes);
+app.use(['/api/products', '/api/v1/products'],  productsRoutes);
+app.use(['/api/workflows', '/api/v1/workflows'], workflowsRoutes);
+app.use(['/api/tasks', '/api/v1/tasks'],     tasksRoutes);
+app.use(['/api/ai', '/api/v1/ai'],        aiRoutes);
+app.use(['/api/sprints', '/api/v1/sprints'],   sprintsRoutes);
 
 // ─── Global error handler ─────────────────────────────────────────────────────
 

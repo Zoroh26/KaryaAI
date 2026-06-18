@@ -5,8 +5,9 @@ import { ApiResponse } from '@/types/api';
 class UserService {
   async getUsers(role?: string): Promise<User[]> {
     const endpoint = role ? `/users?role=${role}` : '/users';
-    const response = await apiClient.get<ApiResponse<User[]>>(endpoint);
-    return response.data;
+    // The backend returns { success, data: { users, total, page, totalPages }, message }
+    const response = await apiClient.get<ApiResponse<{ users: User[] }>>(endpoint);
+    return response.data.users;
   }
 
   async getUser(id: string): Promise<User> {
@@ -15,12 +16,17 @@ class UserService {
   }
 
   async updateUser(id: string, userData: Partial<User>): Promise<User> {
-    const response = await apiClient.patch<ApiResponse<User>>(`/users/${id}`, userData);
+    const response = await apiClient.put<ApiResponse<User>>(`/users/${id}`, userData);
     return response.data;
   }
 
   async deleteUser(id: string): Promise<void> {
     await apiClient.delete(`/users/${id}`);
+  }
+
+  async restoreUser(id: string): Promise<User> {
+    const response = await apiClient.post<ApiResponse<User>>(`/users/${id}/restore`);
+    return response.data;
   }
 
   async getEmployees(): Promise<User[]> {

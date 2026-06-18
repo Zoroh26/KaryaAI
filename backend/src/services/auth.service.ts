@@ -6,6 +6,11 @@ export interface SignupData {
   password: string;
   full_name: string;
   role: UserRole;
+  // Extended profile fields (optional at signup)
+  phone?: string;
+  department?: string;
+  designation?: string;
+  bio?: string;
   skillset?: string[];
 }
 
@@ -45,6 +50,12 @@ export class AuthService {
         full_name: userData.full_name,
         email: userData.email,
         role: userData.role,
+        // Extended profile fields
+        phone: userData.phone?.trim() || null,
+        department: userData.department?.trim() || null,
+        designation: userData.designation?.trim() || null,
+        bio: userData.bio?.trim() || null,
+        // Status
         isActive: true,
         isDeleted: false,
         createdAt: new Date(),
@@ -106,6 +117,14 @@ export class AuthService {
       }
 
       const userData = userDoc.data() as User;
+
+      // TODO (production): Password verification is intentionally skipped here for testing purposes.
+      // Firebase Admin SDK cannot verify passwords directly.
+      // Before going to production, add Firebase REST Identity Toolkit verification:
+      //
+      //   const FIREBASE_REST_URL = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${process.env.FIREBASE_API_KEY}`;
+      //   const verifyResp = await fetch(FIREBASE_REST_URL, { method:'POST', body: JSON.stringify({ email, password, returnSecureToken:true }) });
+      //   if (!verifyResp.ok) throw new Error('Invalid credentials');
 
       // Create custom token
       const customToken = await auth.createCustomToken(userRecord.uid, {

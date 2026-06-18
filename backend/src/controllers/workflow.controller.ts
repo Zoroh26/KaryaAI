@@ -179,6 +179,16 @@ export class WorkflowController {
 
     } catch (error: any) {
       console.error('WorkflowController.getWorkflowById error:', error);
+
+      if (error.message === 'Workflow not found') {
+        res.status(404).json({
+          success: false,
+          error: 'Workflow not found',
+          code: 'WORKFLOW_NOT_FOUND'
+        });
+        return;
+      }
+
       res.status(500).json({
         success: false,
         error: 'Failed to retrieve workflow',
@@ -234,6 +244,16 @@ export class WorkflowController {
 
     } catch (error: any) {
       console.error('WorkflowController.updateWorkflow error:', error);
+
+      if (error.message === 'Workflow not found') {
+        res.status(404).json({
+          success: false,
+          error: 'Workflow not found',
+          code: 'WORKFLOW_NOT_FOUND'
+        });
+        return;
+      }
+
       res.status(500).json({
         success: false,
         error: 'Failed to update workflow',
@@ -244,19 +264,16 @@ export class WorkflowController {
 
   /**
    * Approve workflow (Admin only)
+   * Also automatically triggers sprint planning for the workflow.
    */
   async approveWorkflow(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       if (!req.user) {
-        res.status(401).json({
-          success: false,
-          error: 'User not authenticated'
-        });
+        res.status(401).json({ success: false, error: 'User not authenticated' });
         return;
       }
 
       const { id } = req.params;
-
       if (!id) {
         res.status(400).json({
           success: false,
@@ -266,16 +283,40 @@ export class WorkflowController {
         return;
       }
 
+      // Approve workflow + seed flat tasks collection
       const result = await workflowService.approveWorkflow(id, req.user.uid);
+
+      // Auto-plan sprints (non-fatal — can be re-triggered via POST /api/sprints/plan/:workflowId)
+      let sprintPlan = null;
+      try {
+        const { sprintService } = await import('../services/sprint.service');
+        sprintPlan = await sprintService.planSprintsForWorkflow(id);
+        console.log(`[Sprint] Auto-planned ${sprintPlan.sprintsCreated} sprint(s) for workflow ${id}`);
+      } catch (sprintErr: any) {
+        console.error('[Sprint] Auto sprint planning failed (non-fatal):', sprintErr.message);
+      }
 
       res.json({
         success: true,
-        data: result,
-        message: 'Workflow approved successfully'
+        data: {
+          ...result,
+          sprintPlan,  // null if sprint planning failed (can re-plan manually)
+        },
+        message: 'Workflow approved successfully',
       });
 
     } catch (error: any) {
       console.error('WorkflowController.approveWorkflow error:', error);
+
+      if (error.message === 'Workflow not found') {
+        res.status(404).json({
+          success: false,
+          error: 'Workflow not found',
+          code: 'WORKFLOW_NOT_FOUND'
+        });
+        return;
+      }
+
       res.status(500).json({
         success: false,
         error: 'Failed to approve workflow',
