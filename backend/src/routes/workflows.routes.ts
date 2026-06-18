@@ -9,7 +9,7 @@ const router = Router();
 router.use(authenticateToken);
 
 // Client routes - clients can generate workflows for their products
-router.post('/generate', requireClient, workflowController.generateWorkflow);
+router.post('/generate', requireClientOrAdmin, workflowController.generateWorkflow);
 router.post('/analyze', requireClientOrAdmin, workflowController.analyzeProject);
 router.get('/my-workflows', requireClient, workflowController.getWorkflows); // Client can see their own workflows
 

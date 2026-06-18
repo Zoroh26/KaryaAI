@@ -155,32 +155,26 @@ export class FirebaseService {
     });
   }
 
-  async getTasks(filters?: { 
-    status?: string; 
-    assignedTo?: string; 
+  async getTasks(filters?: {
+    status?: string;
+    assignedTo?: string;
     workflowId?: string;
     productId?: string;
+    sprintId?: string;
   }): Promise<Task[]> {
     if (!firestore) throw new Error('Firebase not initialized');
     let query: any = firestore.collection('tasks');
-    
-    if (filters?.status) {
-      query = query.where('status', '==', filters.status);
-    }
-    if (filters?.assignedTo) {
-      query = query.where('assignedTo', '==', filters.assignedTo);
-    }
-    if (filters?.workflowId) {
-      query = query.where('workflowId', '==', filters.workflowId);
-    }
-    if (filters?.productId) {
-      query = query.where('productId', '==', filters.productId);
-    }
+
+    if (filters?.status)     query = query.where('status',     '==', filters.status);
+    if (filters?.assignedTo) query = query.where('assignedTo', '==', filters.assignedTo);
+    if (filters?.workflowId) query = query.where('workflowId', '==', filters.workflowId);
+    if (filters?.productId)  query = query.where('productId',  '==', filters.productId);
+    if (filters?.sprintId)   query = query.where('sprintId',   '==', filters.sprintId);
 
     const snapshot = await query.get();
-    return snapshot.docs.map((doc: any) => ({ 
-      id: doc.id, 
-      ...doc.data() 
+    return snapshot.docs.map((doc: any) => ({
+      id: doc.id,
+      ...doc.data()
     } as Task));
   }
 

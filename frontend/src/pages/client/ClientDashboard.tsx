@@ -1,71 +1,27 @@
 import React from 'react';
 import { WobbleCard } from '../../components/ui/wobble-card';
 import CountUp from '@/components/ui/CountUp';
+import { useDashboardData } from '@/hooks/useDashboardData';
+import { useAuth } from '@/contexts/AuthContext';
+import { Link } from 'react-router-dom';
 
 const ClientDashboard = () => {
-  const clientName = 'John';
+  const { user } = useAuth();
+  const { products, workflows, isLoading } = useDashboardData();
   
-  const projects = [
-    { 
-      id: 1, 
-      name: 'E-commerce Platform', 
-      status: 'in_progress',
-      progress: 75,
-      totalTasks: 24,
-      completedTasks: 18,
-      deadline: '2025-09-15',
-      budget: '$25,000'
-    },
-    { 
-      id: 2, 
-      name: 'Mobile App Redesign', 
-      status: 'planning',
-      progress: 25,
-      totalTasks: 16,
-      completedTasks: 4,
-      deadline: '2025-10-01',
-      budget: '$18,000'
-    },
-    { 
-      id: 3, 
-      name: 'Analytics Dashboard', 
-      status: 'completed',
-      progress: 100,
-      totalTasks: 12,
-      completedTasks: 12,
-      deadline: '2025-08-20',
-      budget: '$15,000'
-    },
-  ];
+  const clientName = user?.full_name?.split(' ')[0] || 'Client';
 
-  const recentUpdates = [
-    { 
-      id: 1, 
-      title: 'E-commerce Platform: Payment Integration Complete',
-      timestamp: '2 hours ago',
-      type: 'milestone',
-      project: 'E-commerce Platform'
-    },
-    { 
-      id: 2, 
-      title: 'Mobile App: UI Mockups Ready for Review',
-      timestamp: '1 day ago',
-      type: 'review_required',
-      project: 'Mobile App Redesign'
-    },
-    { 
-      id: 3, 
-      title: 'Analytics Dashboard: Project Completed',
-      timestamp: '3 days ago',
-      type: 'completed',
-      project: 'Analytics Dashboard'
-    },
-  ];
+  // Calculate real stats
+  const activeProductsCount = products.filter(p => p.status === 'in_progress').length;
+  const completedProductsCount = products.filter(p => p.status === 'completed').length;
+  
+  // Aggregate budget (if we had it on the model, otherwise placeholder or 0)
+  const totalBudget = products.reduce((acc, curr) => acc + (curr.estimatedBudget || 0), 0) / 1000; // in K
 
   const stats = [
     {
       title: 'Total Products',
-      value: '3',
+      value: products.length.toString(),
       change: '+1',
       changeType: 'positive',
       icon: 'fas fa-box',
@@ -73,7 +29,7 @@ const ClientDashboard = () => {
     },
     {
       title: 'Active',
-      value: '2',
+      value: activeProductsCount.toString(),
       change: '0',
       changeType: 'neutral',
       icon: 'fas fa-chart-line',
@@ -81,7 +37,7 @@ const ClientDashboard = () => {
     },
     {
       title: 'Completed',
-      value: '1',
+      value: completedProductsCount.toString(),
       change: '+1',
       changeType: 'positive',
       icon: 'fas fa-check-circle',
@@ -89,13 +45,24 @@ const ClientDashboard = () => {
     },
     {
       title: 'Total Budget',
-      value: '58',
+      value: totalBudget.toString(),
       change: '+25',
       changeType: 'positive',
       icon: 'fas fa-dollar-sign',
       color: 'text-white'
     }
   ];
+
+  // Map latest workflows to recent updates for the UI
+  const recentUpdates = workflows.slice(0, 5).map(w => ({
+    id: w.id,
+    title: `Workflow ${w.status.replace('_', ' ')}: ${w.title}`,
+    timestamp: new Date(w.updatedAt || Date.now()).toLocaleDateString(),
+    type: w.status === 'completed' ? 'completed' : w.status === 'pending_approval' ? 'review_required' : 'milestone',
+    project: w.title
+  }));
+
+
 
   const getStatusBadge = (status: string) => {
     const variants = {
@@ -132,10 +99,10 @@ const ClientDashboard = () => {
             <i className="fas fa-user w-3 h-3 mr-1"></i>
             Client
           </span>
-          <button className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-lg font-medium ring-offset-background transition-colors bg-white/10 hover:bg-white/20 border border-white/20 text-white h-10 py-2 px-4">
+          <Link to="/app/client/products" className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-lg font-medium ring-offset-background transition-colors bg-white/10 hover:bg-white/20 border border-white/20 text-white h-10 py-2 px-4">
             <i className="fas fa-plus w-4 h-4 mr-2"></i>
             New Product
-          </button>
+          </Link>
         </div>
       </div>
 
@@ -171,36 +138,34 @@ const ClientDashboard = () => {
             <i className="fas fa-box text-lg text-primary"></i>
           </div>
           <div className="space-y-2 flex-1 overflow-y-auto">
-            {projects.map((project) => (
-              <div key={project.id} className="p-2 rounded-lg bg-white/5 border border-white/10 block">
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-medium text-white text-base font-navbar truncate">{project.name}</h4>
-                    <span className={`inline-flex items-center rounded-full px-2 py-1 text-sm font-medium font-navbar ${getStatusBadge(project.status)}`}>
-                      {project.status.replace('_', ' ')}
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4 text-sm text-white/70 font-navbar mb-2">
-                    <div>
-                      <span className="block text-white font-medium">{project.completedTasks}/{project.totalTasks}</span>
-                      <span>Tasks</span>
+            {isLoading ? (
+              <div className="p-4 text-center text-white/50 font-navbar">Loading...</div>
+            ) : products.length === 0 ? (
+              <div className="p-4 text-center text-white/50 font-navbar">No products found. Create your first product request.</div>
+            ) : (
+              products.map((project) => (
+                <div key={project.id} className="p-2 rounded-lg bg-white/5 border border-white/10 block">
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-medium text-white text-base font-navbar truncate">{project.title}</h4>
+                      <span className={`inline-flex items-center rounded-full px-2 py-1 text-sm font-medium font-navbar ${getStatusBadge(project.status)}`}>
+                        {project.status.replace('_', ' ')}
+                      </span>
                     </div>
-                    <div>
-                      <span className="block text-white font-medium">{project.budget}</span>
-                      <span>Budget</span>
-                    </div>
-                  </div>
-                  {project.progress > 0 && (
-                    <div className="flex items-center space-x-2">
-                      <div className="w-24 bg-white/20 rounded-full h-2">
-                        <div className="bg-primary h-2 rounded-full transition-all duration-300" style={{ width: `${project.progress}%` }}></div>
+                    <div className="grid grid-cols-2 gap-4 text-sm text-white/70 font-navbar mb-2">
+                      <div>
+                        <span className="block text-white font-medium">{project.priority}</span>
+                        <span>Priority</span>
                       </div>
-                      <span className="text-sm text-white/70 font-navbar">{project.progress}%</span>
+                      <div>
+                        <span className="block text-white font-medium">${project.estimatedBudget?.toLocaleString() || 'TBD'}</span>
+                        <span>Budget</span>
+                      </div>
                     </div>
-                  )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </WobbleCard>
 

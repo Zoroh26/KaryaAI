@@ -6,15 +6,22 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const { login, isLoading } = useAuth();
+  const { user, login, isLoading } = useAuth();
   const navigate = useNavigate();
+
+  // Redirect if user is already logged in
+  React.useEffect(() => {
+    if (user) {
+      navigate(`/app/${user.role}`);
+    }
+  }, [user, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
     try {
       await login({ email, password });
-      navigate('/admin');
+      // The useEffect will handle the redirect once user state is set
     } catch (error) {
       // Error handling is done in AuthContext with toast
     }

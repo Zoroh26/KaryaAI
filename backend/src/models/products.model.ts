@@ -12,6 +12,14 @@ export interface Product {
   deadline?: Date;
   requirements?: string[];
   attachments?: string[];
+  // Extended brief fields
+  targetAudience?: string;
+  platformType?: string;
+  techPreferences?: string;
+  keyFeatures?: string;
+  successCriteria?: string;
+  additionalNotes?: string;
+  // Meta
   isDeleted: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -36,6 +44,13 @@ export interface CreateProductData {
   estimatedBudget?: number;
   deadline?: Date;
   requirements?: string[];
+  // Extended brief fields
+  targetAudience?: string;
+  platformType?: string;
+  techPreferences?: string;
+  keyFeatures?: string;
+  successCriteria?: string;
+  additionalNotes?: string;
 }
 
 export interface UpdateProductData {
@@ -47,6 +62,13 @@ export interface UpdateProductData {
   estimatedBudget?: number;
   deadline?: Date;
   requirements?: string[];
+  // Extended brief fields
+  targetAudience?: string;
+  platformType?: string;
+  techPreferences?: string;
+  keyFeatures?: string;
+  successCriteria?: string;
+  additionalNotes?: string;
 }
 
 export interface ProductFilterOptions {

@@ -15,7 +15,8 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test:flow": "node scripts/test-flow.js",
-    "test:flow:keep": "node scripts/test-flow.js --no-cleanup"
+    "test:flow:keep": "node scripts/test-flow.js --no-cleanup",
+    "create-admin": "ts-node scripts/create-admin.ts"
   },
   "keywords": [
     "karyaai",

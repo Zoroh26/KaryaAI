@@ -45,7 +45,7 @@ export class AIController {
 
   async assignTasks(req: Request, res: Response): Promise<void> {
     try {
-      const { workflowId, taskIds } = req.body;
+      const { workflowId, taskIds, preview } = req.body;
 
       let tasks = [];
 
@@ -72,13 +72,14 @@ export class AIController {
         return;
       }
 
-      const assignments = await taskAssignmentService.assignTasksToEmployees(tasks);
+      const assignments = await taskAssignmentService.assignTasksToEmployees(tasks, !preview);
 
       res.json({
         success: true,
-        message: 'Tasks assigned successfully using AI',
+        message: preview ? 'Task assignment preview generated' : 'Tasks assigned successfully using AI',
         assignments,
         totalAssigned: assignments.length,
+        isPreview: !!preview
       });
     } catch (error) {
       console.error('AI assign tasks error:', error);

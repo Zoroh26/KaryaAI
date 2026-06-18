@@ -11,6 +11,8 @@ export interface User {
   isAvailable?: boolean;
   isActive?: boolean;
   isDeleted?: boolean;
+  /** Max story points per sprint for this employee (default: 16) */
+  sprintCapacityPoints?: number;
   createdAt: Date;
   updatedAt?: Date;
 }
@@ -78,7 +80,7 @@ export interface WorkflowTask {
   title: string;
   description: string;
   estimatedHours: number;
-  /** Skills required — plural form, consistent across the codebase */
+  /** Fibonacci story points (1/2/3/5/8/13) derived from estimatedHours */
   skillsRequired: string[];
   priority: 'Low' | 'Medium' | 'High';
   status: 'pending' | 'assigned' | 'in_progress' | 'completed';
@@ -120,10 +122,15 @@ export interface Task {
   /** Skills required — plural form */
   skillsRequired: string[];
   estimatedHours: number;
+  /** Fibonacci story points (1/2/3/5/8/13) — computed from estimatedHours */
+  storyPoints: number;
   priority: 'Low' | 'Medium' | 'High';
   status: TaskStatus;
   assignedTo?: string;
   assignedToName?: string;
+  /** Sprint this task belongs to */
+  sprintId?: string;
+  sprintNumber?: number;
   startDate?: Date;
   endDate?: Date;
   completedAt?: Date;
@@ -141,10 +148,13 @@ export interface InsertTask {
   description: string;
   skillsRequired: string[];
   estimatedHours: number;
+  storyPoints?: number;
   priority: 'Low' | 'Medium' | 'High';
   status?: TaskStatus;
   assignedTo?: string;
   assignedToName?: string;
+  sprintId?: string;
+  sprintNumber?: number;
 }
 
 // ─── Zod validation schemas ───────────────────────────────────────────────────

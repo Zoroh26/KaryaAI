@@ -11,8 +11,15 @@ export interface UserFilterOptions {
 export interface UserUpdateData {
   full_name?: string;
   role?: UserRole;
+  // Extended profile fields
+  phone?: string;
+  department?: string;
+  designation?: string;
+  bio?: string;
+  // Employee-specific fields
   skillset?: string[];
   isAvailable?: boolean;
+  // Status
   isActive?: boolean;
 }
 
@@ -161,6 +168,22 @@ export class UserService {
           throw new Error('Full name cannot be empty');
         }
         updates.full_name = updateData.full_name.trim();
+      }
+
+      if (updateData.phone !== undefined) {
+        updates.phone = updateData.phone.trim() || null;
+      }
+
+      if (updateData.department !== undefined) {
+        updates.department = updateData.department.trim() || null;
+      }
+
+      if (updateData.designation !== undefined) {
+        updates.designation = updateData.designation.trim() || null;
+      }
+
+      if (updateData.bio !== undefined) {
+        updates.bio = updateData.bio.trim() || null;
       }
 
       if (updateData.role !== undefined) {

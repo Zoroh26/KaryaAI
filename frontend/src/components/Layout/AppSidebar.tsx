@@ -6,22 +6,23 @@ const adminNavigation = [
   {
     title: 'Overview',
     items: [
-      { title: 'Dashboard', url: '/admin', icon: 'fas fa-pager', exact: true },
-      { title: 'Analytics', url: '/admin/analytics', icon: 'fas fa-chart-line' },
+      { title: 'Dashboard', url: '/app/admin', icon: 'fas fa-pager', exact: true },
+      { title: 'Analytics', url: '/app/admin/analytics', icon: 'fas fa-chart-line' },
     ]
   },
   {
     title: 'Management',
     items: [
-      { title: 'Users', url: '/admin/users', icon: 'fas fa-users' },
-      { title: 'Tasks', url: '/admin/tasks', icon: 'fas fa-square-check' },
-      { title: 'Workflows', url: '/admin/workflows', icon: 'fas fa-diagram-project' },
+      { title: 'Users', url: '/app/admin/users', icon: 'fas fa-users' },
+      { title: 'Products', url: '/app/admin/products', icon: 'fas fa-box' },
+      { title: 'Tasks', url: '/app/admin/tasks', icon: 'fas fa-square-check' },
+      { title: 'Workflows', url: '/app/admin/workflows', icon: 'fas fa-diagram-project' },
     ]
   },
   {
     title: 'System',
     items: [
-      { title: 'Settings', url: '/admin/settings', icon: 'fas fa-cog' },
+      { title: 'Settings', url: '/app/admin/settings', icon: 'fas fa-cog' },
     ]
   }
 ];
@@ -30,15 +31,15 @@ const employeeNavigation = [
   {
     title: 'Work',
     items: [
-      { title: 'Dashboard', url: '/employee', icon: 'fas fa-tachograph-digital', exact: true },
-      { title: 'My Tasks', url: '/employee/tasks', icon: 'fas fa-check-square' },
-      { title: 'Schedule', url: '/employee/schedule', icon: 'fas fa-calendar' },
+      { title: 'Dashboard', url: '/app/employee', icon: 'fas fa-tachograph-digital', exact: true },
+      { title: 'My Tasks', url: '/app/employee/tasks', icon: 'fas fa-check-square' },
+      { title: 'Schedule', url: '/app/employee/schedule', icon: 'fas fa-calendar' },
     ]
   },
   {
     title: 'Personal',
     items: [
-      { title: 'Profile', url: '/employee/profile', icon: 'fas fa-user' },
+      { title: 'Profile', url: '/app/employee/profile', icon: 'fas fa-user' },
     ]
   }
 ];
@@ -47,16 +48,16 @@ const clientNavigation = [
   {
     title: 'Projects',
     items: [
-      { title: 'Dashboard', url: '/client', icon: 'fas fa-tachograph-digtal', exact: true },
-      { title: 'Products', url: '/client/products', icon: 'fas fa-box' },
-      { title: 'Workflows', url: '/client/workflows', icon: 'fas fa-diagram-project' },
+      { title: 'Dashboard', url: '/app/client', icon: 'fas fa-tachograph-digital', exact: true },
+      { title: 'Products', url: '/app/client/products', icon: 'fas fa-box' },
+      { title: 'Workflows', url: '/app/client/workflows', icon: 'fas fa-diagram-project' },
     ]
   },
   {
     title: 'Communication',
     items: [
-      { title: 'Updates', url: '/client/updates', icon: 'fas fa-bell' },
-      { title: 'Feedback', url: '/client/feedback', icon: 'fas fa-comment' },
+      { title: 'Updates', url: '/app/client/updates', icon: 'fas fa-bell' },
+      { title: 'Feedback', url: '/app/client/feedback', icon: 'fas fa-comment' },
     ]
   }
 ];

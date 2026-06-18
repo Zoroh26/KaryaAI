@@ -3,14 +3,17 @@ import { firebaseService } from '../services/firebaseService';
 import { taskAssignmentService } from '../services/taskAssignmentService';
 import { InsertTask } from '../types/schema';
 import { createError } from '../middlewares/errorHandler';
+import { hoursToStoryPoints } from '../utils/storyPoints';
 
 export class TaskController {
   async createTask(req: Request, res: Response) {
     try {
       const taskData: InsertTask = req.body;
-      
+
       const task = await firebaseService.createTask({
         ...taskData,
+        // Compute storyPoints if not supplied (tasks created via API without sprint context)
+        storyPoints: taskData.storyPoints ?? hoursToStoryPoints(taskData.estimatedHours),
         status: 'unassigned',
       });
 
@@ -115,7 +118,7 @@ export class TaskController {
 
   async assignTasks(req: Request, res: Response) {
     try {
-      const { taskIds } = req.body;
+      const { taskIds, preview } = req.body;
       
       if (!Array.isArray(taskIds) || taskIds.length === 0) {
         throw createError('Task IDs required', 400);
@@ -134,11 +137,14 @@ export class TaskController {
         throw createError('No valid tasks found', 404);
       }
 
-      const assignments = await taskAssignmentService.assignTasksToEmployees(tasks);
+      const assignments = await taskAssignmentService.assignTasksToEmployees(tasks, !preview);
 
       res.json({
-        message: 'Tasks assigned successfully',
+        success: true,
+        message: preview ? 'Task assignment preview generated' : 'Tasks assigned successfully',
         assignments,
+        totalAssigned: assignments.length,
+        isPreview: !!preview
       });
     } catch (error) {
       console.error('Assign tasks error:', error);
