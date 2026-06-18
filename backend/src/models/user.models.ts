@@ -3,10 +3,18 @@ export interface User {
   email: string;
   full_name: string;
   role: UserRole;
+  // Extended profile fields
+  phone?: string;
+  department?: string;
+  designation?: string;
+  bio?: string;
+  // Employee-specific fields
   skillset?: string[];
   isAvailable?: boolean;
+  // Status flags
   isActive?: boolean;
   isDeleted?: boolean;
+  deletedAt?: FirebaseFirestore.Timestamp;
   createdAt?: FirebaseFirestore.Timestamp;
   updatedAt?: FirebaseFirestore.Timestamp;
 }

@@ -6,6 +6,11 @@ export interface SignupData {
   password: string;
   full_name: string;
   role: UserRole;
+  // Extended profile fields (optional at signup)
+  phone?: string;
+  department?: string;
+  designation?: string;
+  bio?: string;
   skillset?: string[];
 }
 
@@ -45,6 +50,12 @@ export class AuthService {
         full_name: userData.full_name,
         email: userData.email,
         role: userData.role,
+        // Extended profile fields
+        phone: userData.phone?.trim() || null,
+        department: userData.department?.trim() || null,
+        designation: userData.designation?.trim() || null,
+        bio: userData.bio?.trim() || null,
+        // Status
         isActive: true,
         isDeleted: false,
         createdAt: new Date(),

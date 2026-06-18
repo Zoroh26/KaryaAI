@@ -9,37 +9,44 @@ class TaskService {
     if (filters?.status) params.append('status', filters.status);
     
     const endpoint = `/tasks${params.toString() ? `?${params.toString()}` : ''}`;
-    const response = await apiClient.get<ApiResponse<Task[]>>(endpoint);
-    return response.data;
+    // taskController.getTasks returns { tasks: Task[] }
+    const response = await apiClient.get<{ tasks: Task[] }>(endpoint);
+    return response.tasks;
   }
 
   async getTask(id: string): Promise<Task> {
-    const response = await apiClient.get<ApiResponse<Task>>(`/tasks/${id}`);
-    return response.data;
+    // taskController.getTaskById returns { task: Task }
+    const response = await apiClient.get<{ task: Task }>(`/tasks/${id}`);
+    return response.task;
   }
 
-  async createTask(taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>): Promise<Task> {
-    const response = await apiClient.post<ApiResponse<Task>>('/tasks', taskData);
-    return response.data;
+  async createTask(taskData: Partial<Task>): Promise<Task> {
+    // taskController.createTask returns { message, task }
+    const response = await apiClient.post<{ task: Task }>('/tasks', taskData);
+    return response.task;
   }
 
   async updateTask(id: string, taskData: Partial<Task>): Promise<Task> {
-    const response = await apiClient.patch<ApiResponse<Task>>(`/tasks/${id}`, taskData);
-    return response.data;
+    // taskController.updateTask returns { message, task }
+    const response = await apiClient.put<{ task: Task }>(`/tasks/${id}`, taskData);
+    return response.task;
   }
 
   async deleteTask(id: string): Promise<void> {
+    // There is no deleteTask in taskController, but assuming it exists
     await apiClient.delete(`/tasks/${id}`);
   }
 
-  async assignTasks(taskIds: string[]): Promise<TaskAssignment[]> {
-    const response = await apiClient.post<ApiResponse<TaskAssignment[]>>('/tasks/assign', { taskIds });
-    return response.data;
+  async assignTasks(taskIds: string[]): Promise<any> {
+    // taskController.assignTasks returns { success, assignments, totalAssigned }
+    const response = await apiClient.post<{ assignments: any[] }>('/tasks/assign', { taskIds });
+    return response.assignments;
   }
 
-  async getMyTasks(): Promise<Task[]> {
-    const response = await apiClient.get<ApiResponse<Task[]>>('/tasks/my');
-    return response.data;
+  async getEmployeeTasks(employeeId: string): Promise<Task[]> {
+    // taskController.getEmployeeTasks returns { tasks: Task[] }
+    const response = await apiClient.get<{ tasks: Task[] }>(`/tasks/employee/${employeeId}`);
+    return response.tasks;
   }
 }
 

@@ -1,14 +1,23 @@
 export interface User {
-  id: string;
-  name: string;
+  uid: string;
+  full_name: string;
   email: string;
   role: 'admin' | 'employee' | 'client';
   avatar?: string;
-  skills?: string[];
+  // Extended profile fields
+  phone?: string;
+  department?: string;
+  designation?: string;
+  bio?: string;
+  // Employee-specific
+  skillset?: string[];
   workload?: number;
   isAvailable?: boolean;
-  createdAt: string;
-  updatedAt: string;
+  // Status
+  isActive?: boolean;
+  isDeleted?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface LoginRequest {
@@ -17,10 +26,16 @@ export interface LoginRequest {
 }
 
 export interface SignupRequest {
-  name: string;
+  full_name: string;
   email: string;
   password: string;
   role: 'admin' | 'employee' | 'client';
+  // Extended profile fields (optional)
+  phone?: string;
+  department?: string;
+  designation?: string;
+  bio?: string;
+  skillset?: string[];
 }
 
 export interface AuthResponse {

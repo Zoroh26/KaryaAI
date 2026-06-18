@@ -36,14 +36,22 @@ export const useDashboardData = (): DashboardData => {
       const [tasksData, productsData, workflowsData, usersData] = await Promise.allSettled([
         // Fetch tasks based on user role
         user.role === 'employee' 
-          ? taskService.getMyTasks()
+          ? taskService.getEmployeeTasks(user.uid)
           : taskService.getTasks(),
         
-        // Fetch products
-        productService.getProducts(),
+        // Fetch products based on role
+        user.role === 'client'
+          ? productService.getMyProducts()
+          : user.role === 'employee' 
+            ? Promise.resolve([]) 
+            : productService.getProducts(),
         
-        // Fetch workflows
-        workflowService.getWorkflows(),
+        // Fetch workflows based on role
+        user.role === 'client'
+          ? workflowService.getMyWorkflows()
+          : user.role === 'employee'
+            ? Promise.resolve([])
+            : workflowService.getWorkflows(),
         
         // Fetch users (only for admin)
         user.role === 'admin' 

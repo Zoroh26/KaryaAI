@@ -120,12 +120,34 @@ export class TaskAssignmentService {
     const breakdown: any = {};
 
     // 1. Skill matching (60% of score) - PRIMARY GATEKEEPER
-    const skillMatches = task.skillsRequired.filter(skill =>
-      employee.skillset?.some(empSkill =>
-        empSkill.toLowerCase().includes(skill.toLowerCase()) ||
-        skill.toLowerCase().includes(empSkill.toLowerCase())
-      )
-    ).length;
+    const skillMatches = task.skillsRequired.filter(skill => {
+      const taskSkill = skill.toLowerCase().trim();
+      if (!taskSkill) return false;
+      
+      return employee.skillset?.some(empSkill => {
+        const eSkill = empSkill.toLowerCase().trim();
+        if (eSkill.length < 2) return false;
+        
+        if (eSkill === taskSkill) return true;
+
+        // Check word boundaries to avoid partial word matches (e.g., "sign" matching "design")
+        const tWords = taskSkill.split(/[\s\-_,]+/);
+        const eWords = eSkill.split(/[\s\-_,]+/);
+        
+        for (const ew of eWords) {
+          if (ew.length >= 2 && tWords.includes(ew)) return true;
+        }
+
+        // Also allow if the entire string is a distinct phrase within the other
+        const tPadded = ` ${taskSkill} `;
+        const ePadded = ` ${eSkill} `;
+        
+        if (tPadded.includes(` ${eSkill} `)) return true;
+        if (ePadded.includes(` ${taskSkill} `)) return true;
+
+        return false;
+      });
+    }).length;
 
     // RULE: If task requires skills and employee has 0 matches, score is 0
     if (task.skillsRequired.length > 0 && skillMatches === 0) {

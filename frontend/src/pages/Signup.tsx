@@ -32,7 +32,7 @@ const Signup = () => {
     
     try {
       await signup({
-        name: formData.fullName,
+        full_name: formData.fullName,
         email: formData.email,
         password: formData.password,
         role: formData.role as 'admin' | 'employee' | 'client'

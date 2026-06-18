@@ -4,6 +4,7 @@ import { taskService } from '@/services/taskService';
 import { WobbleCard } from '@/components/ui/wobble-card';
 import CountUp from '@/components/ui/CountUp';
 import { useAuth } from '@/contexts/AuthContext';
+import { ToastContainer, useToast } from '@/components/ui/Toast';
 
 const AdminDashboard = () => {
   const { tasks, users, workflows, products, isLoading, error, refetch } = useDashboardData();
@@ -11,6 +12,7 @@ const AdminDashboard = () => {
   const [isAssigning, setIsAssigning] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const { toasts, toast, removeToast } = useToast();
 
   const handleLogout = async () => {
     try {
@@ -21,7 +23,7 @@ const AdminDashboard = () => {
   };
 
   const getUserInitials = () => {
-    return user?.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'U';
+    return user?.full_name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'U';
   };
 
   // Calculate statistics from real data
@@ -62,20 +64,18 @@ const AdminDashboard = () => {
 
   const handleAutoAssign = async () => {
     const unassignedTasks = tasks.filter(task => !task.assignedTo);
-    
     if (unassignedTasks.length === 0) {
-      alert("No unassigned tasks found.");
+      toast.warning('No tasks to assign', 'All tasks already have assignees.');
       return;
     }
-
     setIsAssigning(true);
     try {
       const taskIds = unassignedTasks.map(task => task.id);
       await taskService.assignTasks(taskIds);
-      alert(`${taskIds.length} tasks have been automatically assigned.`);
+      toast.success('Tasks assigned!', `${taskIds.length} tasks have been automatically assigned.`);
       refetch();
     } catch (error) {
-      alert("Failed to assign tasks. Please try again.");
+      toast.error('Assignment failed', 'Could not auto-assign tasks. Please try again.');
     } finally {
       setIsAssigning(false);
     }
@@ -104,6 +104,7 @@ const AdminDashboard = () => {
 
   return (
     <div className="bg-black h-screen text-white p-6 flex flex-col gap-4 overflow-hidden">
+      <ToastContainer toasts={toasts} onClose={removeToast} />
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between h-[10vh] justify-center">
         <div>
@@ -173,7 +174,7 @@ const AdminDashboard = () => {
                 {getUserInitials()}
               </div>
               <div className="hidden sm:block text-left">
-                <div className="text-sm font-medium text-white">{user?.name || 'User'}</div>
+                <div className="text-sm font-medium text-white">{user?.full_name || 'User'}</div>
                 <div className="text-xs text-white/70 capitalize">{user?.role || 'user'}</div>
               </div>
               <i className="fas fa-chevron-down text-white/70 text-xs"></i>
@@ -183,7 +184,7 @@ const AdminDashboard = () => {
             {showUserMenu && (
               <div className="absolute right-0 mt-2 w-56 bg-black/90 backdrop-blur-sm rounded-lg shadow-lg border border-white/20 z-50">
                 <div className="p-4 border-b border-white/20">
-                  <div className="font-medium text-white">{user?.name}</div>
+                  <div className="font-medium text-white">{user?.full_name}</div>
                   <div className="text-sm text-white/70">{user?.email}</div>
                 </div>
                 <div className="py-2">
